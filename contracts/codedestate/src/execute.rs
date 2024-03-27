@@ -649,6 +649,7 @@ where
         let mut token = self.tokens.load(deps.storage, &token_id)?;
         self.check_can_send(deps.as_ref(), &env, &info, &token)?;
         token.longterm_rental.ejari_flag = Some(ejari);
+        self.tokens.save(deps.storage, &token_id, &token)?;
         Ok(Response::new()
         .add_attribute("action", "setejariforlongtermrental")
         .add_attribute("sender", info.sender)
@@ -677,6 +678,7 @@ where
         }
         self.check_can_send(deps.as_ref(), &env, &info, &token)?;
         token.longterm_rental.renting_flag = Some(true);
+        self.tokens.save(deps.storage, &token_id, &token)?;
         Ok(Response::new()
         .add_attribute("action", "proceedlongtermrental")
         .add_attribute("sender", info.sender)
@@ -738,6 +740,7 @@ where
         }
 
         token.longterm_rental.withdrawn_amount += amount;
+        self.tokens.save(deps.storage, &token_id, &token)?;
         Ok(Response::new()
         .add_attribute("action", "withdrawtolandlord")
         .add_message(BankMsg::Send {

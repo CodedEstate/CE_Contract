@@ -213,17 +213,6 @@ where
         Ok(TokensResponse { tokens })
     }
 
-    // fn compare(a: &i32, b: &i32) ->std::cmp::Ordering{
-    //     if a<b {
-    //         return std::cmp::Ordering::Greater;
-    //     }
-    //     if a==b{
-    //         return  std::cmp::Ordering::Equal;
-    //     }
-    //     return std::cmp::Ordering::Less;
-    // }
-
-
     fn all_tokens(
         &self,
         deps: Deps,
@@ -247,7 +236,7 @@ where
             .map(|item| item.map(|(k, v)| Token {
                 id: k,
                 owner: v.owner.clone(),
-                tenant: v.longterm_rental.tenant_address.clone(),
+                tenant: v.longterm_rental.tenant_address.clone(), // should check is_renting flag more correctly
             }))
             .collect();
 
