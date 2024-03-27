@@ -226,7 +226,7 @@ where
         struct Token {
             id: String,
             owner: Addr,
-            tenant: Option<Addr>,
+            renting: Option<bool>,
         }
 
         let mut tokens: StdResult<Vec<Token>> = self
@@ -236,16 +236,16 @@ where
             .map(|item| item.map(|(k, v)| Token {
                 id: k,
                 owner: v.owner.clone(),
-                tenant: v.longterm_rental.tenant_address.clone(), // should check is_renting flag more correctly
+                renting: v.longterm_rental.renting_flag.clone(), // should check renting_flag more correctly
             }))
             .collect();
 
         match tokens {
             Ok(ref mut tokens) => {
                 tokens.sort_by(|a, b| {
-                    if a.tenant.is_some() && b.tenant.is_none() {
+                    if a.renting.is_some() && b.renting.is_none() {
                         return std::cmp::Ordering::Greater;
-                    } else if a.tenant.is_none() && b.tenant.is_some() {
+                    } else if a.renting.is_none() && b.renting.is_some() {
                         return std::cmp::Ordering::Less;
                     }
                     if a.owner == owner && b.owner != owner {
