@@ -168,52 +168,22 @@ where
                 self.proceedlongtermrental(deps, env, info, token_id)
             }
 
-            // ExecuteMsg::ProceedShorttermRental {
-            //     token_id,
-            // } => self.proceedshorttermrental(deps, env, info, token_id),
             ExecuteMsg::SetEjariForLongTermRental { token_id, ejari } => {
                 self.setejariforlongtermrental(deps, env, info, token_id, ejari)
             }
 
-            // ExecuteMsg::SetEjariForShortTermRental{
-            //     token_id,
-            //     ejari,
-            // } => self.setejariforshorttermrental(deps, env, info, token_id, ejari),
             ExecuteMsg::DepositForLongTermRental { token_id } => {
                 self.depositforlongtermrental(deps, env, info, token_id)
             }
 
-            // ExecuteMsg::DepositForShortTermRental {
-            //     token_id,
-            // } => self.depositforshorttermrental(deps,env, info, token_id),
             ExecuteMsg::WithdrawToLandlord {
                 token_id,
                 amount,
                 denom,
             } => self.withdrawtolandlord(deps, env, info, token_id, amount, denom),
-
-            // ExecuteMsg::WithdrawToHost {
-            //     token_id, amount, denom,
-            // } => self.withdrawtohost(deps, env, info, token_id, amount, denom),
             ExecuteMsg::FinalizeLongTermRental { token_id } => {
                 self.finalizelongtermrental(deps, env, info, token_id)
             }
-
-            // ExecuteMsg::SetListing{
-            //     token_id,
-            //     islisted,
-            //     price,
-            // } => self.setlisting(deps, env, info, token_id, islisted, price),
-
-            // ExecuteMsg::Bid{
-            //     token_id,
-            //     offer,
-            // } => self.bid(deps,  info, token_id, offer),
-
-            // ExecuteMsg::Auction{
-            //     token_id,
-            //     new_owner,
-            // } => self.auction(deps, env, info, token_id, new_owner),
             ExecuteMsg::Approve {
                 spender,
                 token_id,
@@ -500,64 +470,6 @@ where
         Ok(token)
     }
 
-    // pub fn setprice(
-    //     &self,
-    //     deps: DepsMut,
-    //     env: Env,
-    //     info: MessageInfo,
-    //     token_id: String,
-    //     price:u64,
-    //     // expires: Option<Expiration>,
-    // ) -> Result<Response<C>, ContractError> {
-    //     let mut token = self.tokens.load(deps.storage, &token_id)?;
-    //     // ensure we have permissions
-    //     self.check_can_send(deps.as_ref(), &env, &info, &token)?;
-
-    //     token.price = price;
-    //     // token.islisted = true;
-    //     self.tokens.save(deps.storage, &token_id, &token)?;
-
-    //     // let spender_addr = env.contract.address.clone();
-    //     // let spender = spender_addr.to_string();
-
-    //     // self._update_approvals(deps, &env, &info, &spender, &token_id, true, expires)?;
-
-    //     Ok(Response::new()
-    //         .add_attribute("action", "setprice")
-    //         .add_attribute("sender", info.sender)
-    //         .add_attribute("token_id", token_id))
-    // }
-
-    // pub fn setlisting(
-    //     &self,
-    //     deps: DepsMut,
-    //     env: Env,
-    //     info: MessageInfo,
-    //     token_id: String,
-    //     islisted:bool,
-    //     price:u64,
-    //     // expires: Option<Expiration>,
-    // ) -> Result<Response<C>, ContractError> {
-    //     let mut token = self.tokens.load(deps.storage, &token_id)?;
-    //     // ensure we have permissions
-    //     self.check_can_send(deps.as_ref(), &env, &info, &token)?;
-
-    //     // token.price = price;
-    //     token.islisted = islisted;
-    //     token.price = price;
-    //     self.tokens.save(deps.storage, &token_id, &token)?;
-
-    //     // let spender_addr = env.contract.address.clone();
-    //     // let spender = spender_addr.to_string();
-
-    //     // self._update_approvals(deps, &env, &info, &spender, &token_id, true, expires)?;
-
-    //     Ok(Response::new()
-    //         .add_attribute("action", "setlisting")
-    //         .add_attribute("sender", info.sender)
-    //         .add_attribute("token_id", token_id))
-    // }
-
     pub fn setmetadata(
         &self,
         deps: DepsMut,
@@ -574,46 +486,8 @@ where
         token.token_uri = Some(token_uri);
         self.tokens.save(deps.storage, &token_id, &token)?;
 
-        // let spender_addr = env.contract.address.clone();
-        // let spender = spender_addr.to_string();
-
-        // self._update_approvals(deps, &env, &info, &spender, &token_id, true, expires)?;
-
         Ok(Response::new()
             .add_attribute("action", "setmetadata")
-            .add_attribute("sender", info.sender)
-            .add_attribute("token_id", token_id))
-    }
-
-    pub fn setlistforlongtermrental(
-        &self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        token_id: String,
-        islisted: bool,
-        denom: String,
-        price_per_month: u64,
-        refundable_deposit: u64,
-        available_period: Vec<String>,
-    ) -> Result<Response<C>, ContractError> {
-        let mut token = self.tokens.load(deps.storage, &token_id)?;
-        // ensure we have permissions
-        self.check_can_approve(deps.as_ref(), &env, &info, &token)?;
-
-        let landlord = Landlord {
-            denom: denom,
-            price_per_month: price_per_month,
-            refundable_deposit: refundable_deposit,
-            available_period: available_period,
-        };
-
-        token.longterm_rental.islisted = Some(islisted);
-        token.longterm_rental.landlord = Some(landlord);
-        self.tokens.save(deps.storage, &token_id, &token)?;
-
-        Ok(Response::new()
-            .add_attribute("action", "setlistforlongtermrental")
             .add_attribute("sender", info.sender)
             .add_attribute("token_id", token_id))
     }
@@ -646,27 +520,6 @@ where
             .add_attribute("token_id", token_id))
     }
 
-    pub fn setunlistforlongtermrental(
-        &self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        token_id: String,
-    ) -> Result<Response<C>, ContractError> {
-        let mut token = self.tokens.load(deps.storage, &token_id)?;
-        // ensure we have permissions
-        self.check_can_approve(deps.as_ref(), &env, &info, &token)?;
-
-        token.longterm_rental.islisted = None;
-        token.longterm_rental.landlord = None;
-        self.tokens.save(deps.storage, &token_id, &token)?;
-
-        Ok(Response::new()
-            .add_attribute("action", "setunlistforlongtermrental")
-            .add_attribute("sender", info.sender)
-            .add_attribute("token_id", token_id))
-    }
-
     pub fn setunlistforshorttermrental(
         &self,
         deps: DepsMut,
@@ -686,35 +539,6 @@ where
 
         Ok(Response::new()
             .add_attribute("action", "setunlistforshorttermrental")
-            .add_attribute("sender", info.sender)
-            .add_attribute("token_id", token_id))
-    }
-
-    pub fn setreservationforlongterm(
-        &self,
-        deps: DepsMut,
-        // env: Env,
-        info: MessageInfo,
-        token_id: String,
-        _isreserved: bool,
-        deposit_amount: u64,
-        deposit_denom: String,
-        renting_period: Vec<String>,
-    ) -> Result<Response<C>, ContractError> {
-        let mut token = self.tokens.load(deps.storage, &token_id)?;
-        // let sent_amount = info.funds[0].amount;
-        let tenant = Tenant {
-            deposit_amount: deposit_amount,
-            deposit_denom: deposit_denom,
-            renting_period: renting_period,
-        };
-        token.longterm_rental.isreserved = Some(true);
-        token.longterm_rental.tenant_address = Some(info.sender.clone());
-        token.longterm_rental.tenant = Some(tenant);
-        self.tokens.save(deps.storage, &token_id, &token)?;
-
-        Ok(Response::new()
-            .add_attribute("action", "setreservationforlongterm")
             .add_attribute("sender", info.sender)
             .add_attribute("token_id", token_id))
     }
@@ -983,6 +807,89 @@ where
             .add_attribute("token_id", token_id))
     }
 
+    pub fn setlistforlongtermrental(
+        &self,
+        deps: DepsMut,
+        env: Env,
+        info: MessageInfo,
+        token_id: String,
+        islisted: bool,
+        denom: String,
+        price_per_month: u64,
+        refundable_deposit: u64,
+        available_period: Vec<String>,
+    ) -> Result<Response<C>, ContractError> {
+        let mut token = self.tokens.load(deps.storage, &token_id)?;
+        // ensure we have permissions
+        self.check_can_approve(deps.as_ref(), &env, &info, &token)?;
+
+        let landlord = Landlord {
+            denom: denom,
+            price_per_month: price_per_month,
+            refundable_deposit: refundable_deposit,
+            available_period: available_period,
+        };
+
+        token.longterm_rental.islisted = Some(islisted);
+        token.longterm_rental.landlord = Some(landlord);
+        self.tokens.save(deps.storage, &token_id, &token)?;
+
+        Ok(Response::new()
+            .add_attribute("action", "setlistforlongtermrental")
+            .add_attribute("sender", info.sender)
+            .add_attribute("token_id", token_id))
+    }
+
+    pub fn setunlistforlongtermrental(
+        &self,
+        deps: DepsMut,
+        env: Env,
+        info: MessageInfo,
+        token_id: String,
+    ) -> Result<Response<C>, ContractError> {
+        let mut token = self.tokens.load(deps.storage, &token_id)?;
+        // ensure we have permissions
+        self.check_can_approve(deps.as_ref(), &env, &info, &token)?;
+
+        token.longterm_rental.islisted = None;
+        token.longterm_rental.landlord = None;
+        self.tokens.save(deps.storage, &token_id, &token)?;
+
+        Ok(Response::new()
+            .add_attribute("action", "setunlistforlongtermrental")
+            .add_attribute("sender", info.sender)
+            .add_attribute("token_id", token_id))
+    }
+
+    pub fn setreservationforlongterm(
+        &self,
+        deps: DepsMut,
+        // env: Env,
+        info: MessageInfo,
+        token_id: String,
+        _isreserved: bool,
+        deposit_amount: u64,
+        deposit_denom: String,
+        renting_period: Vec<String>,
+    ) -> Result<Response<C>, ContractError> {
+        let mut token = self.tokens.load(deps.storage, &token_id)?;
+        // let sent_amount = info.funds[0].amount;
+        let tenant = Tenant {
+            deposit_amount: deposit_amount,
+            deposit_denom: deposit_denom,
+            renting_period: renting_period,
+        };
+        token.longterm_rental.isreserved = Some(true);
+        token.longterm_rental.tenant_address = Some(info.sender.clone());
+        token.longterm_rental.tenant = Some(tenant);
+        self.tokens.save(deps.storage, &token_id, &token)?;
+
+        Ok(Response::new()
+            .add_attribute("action", "setreservationforlongterm")
+            .add_attribute("sender", info.sender)
+            .add_attribute("token_id", token_id))
+    }
+
     pub fn rejectreservationforlongterm(
         &self,
         deps: DepsMut,
@@ -1051,24 +958,6 @@ where
             .add_attribute("token_id", token_id))
     }
 
-    // pub fn setejariforshorttermrental(
-    //     &self,
-    //     deps: DepsMut,
-    //     env: Env,
-    //     info: MessageInfo,
-    //     token_id:String,
-    //     ejari:bool,
-    // ) -> Result<Response<C>, ContractError>{
-    //     let mut token = self.tokens.load(deps.storage, &token_id)?;
-    //     self.check_can_send(deps.as_ref(), &env, &info, &token)?;
-    //     token.shortterm_rental.ejari_flag = Some(ejari);
-    //     self.tokens.save(deps.storage, &token_id, &token)?;
-    //     Ok(Response::new()
-    //     .add_attribute("action", "setejariforshorttermrental")
-    //     .add_attribute("sender", info.sender)
-    //     .add_attribute("token_id", token_id))
-    // }
-
     pub fn proceedlongtermrental(
         &self,
         deps: DepsMut,
@@ -1096,35 +985,6 @@ where
             .add_attribute("sender", info.sender)
             .add_attribute("token_id", token_id))
     }
-
-    // pub fn proceedshorttermrental(
-    //     &self,
-    //     deps: DepsMut,
-    //     env: Env,
-    //     info: MessageInfo,
-    //     token_id:String,
-    // ) -> Result<Response<C>, ContractError> {
-    //     let mut token = self.tokens.load(deps.storage, &token_id)?;
-    //     let traveler_address = token.shortterm_rental.traveler_address.clone();
-    //     match traveler_address {
-    //         Some(address) => {
-    //             if info.sender != address {
-    //                 return Err(ContractError::NotReserved {});
-    //             }
-
-    //         }
-    //         None => {
-    //             return Err(ContractError::NotReserved {});
-    //         }
-    //     }
-    //     self.check_can_send(deps.as_ref(), &env, &info, &token)?;
-    //     token.shortterm_rental.renting_flag = Some(true);
-    //     self.tokens.save(deps.storage, &token_id, &token)?;
-    //     Ok(Response::new()
-    //     .add_attribute("action", "proceedshorttermrental")
-    //     .add_attribute("sender", info.sender)
-    //     .add_attribute("token_id", token_id))
-    // }
 
     pub fn depositforlongtermrental(
         &self,
@@ -1160,40 +1020,6 @@ where
             .add_attribute("token_id", token_id))
     }
 
-    // pub fn depositforshorttermrental(
-    //     &self,
-    //     deps: DepsMut,
-    //     env:Env,
-    //     info: MessageInfo,
-    //     token_id:String,
-    // ) -> Result<Response<C>, ContractError> {
-    //     let mut token = self.tokens.load(deps.storage, &token_id)?;
-    //     self.check_can_send(deps.as_ref(), &env, &info, &token)?;
-    //     let _sent_amount = info.funds[0].amount;
-    //     let traveler_address = token.shortterm_rental.traveler_address.clone();
-    //     match traveler_address {
-    //         Some(address) => {
-    //             if info.sender != address {
-    //                 return Err(ContractError::NotReserved {});
-    //             }
-
-    //             if token.shortterm_rental.renting_flag != Some(true) {
-    //                 return Err(ContractError::RentalNotActivated {});
-    //             }
-    //         }
-    //         None => {
-    //             return Err(ContractError::NotReserved {});
-    //         }
-    //     }
-    //     token.shortterm_rental.deposit_amount += _sent_amount;
-    //     self.tokens.save(deps.storage, &token_id, &token)?;
-
-    //     Ok(Response::new()
-    //         .add_attribute("action", "depositforshorttermrental")
-    //         .add_attribute("sender", info.sender)
-    //         .add_attribute("token_id", token_id))
-    // }
-
     pub fn withdrawtolandlord(
         &self,
         deps: DepsMut,
@@ -1224,37 +1050,6 @@ where
             }))
     }
 
-    pub fn withdrawtohost(
-        &self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        token_id: String,
-        amount: Uint128,
-        denom: String,
-    ) -> Result<Response<C>, ContractError> {
-        let mut token = self.tokens.load(deps.storage, &token_id)?;
-        self.check_can_approve(deps.as_ref(), &env, &info, &token)?;
-
-        if token.shortterm_rental.deposit_amount < token.shortterm_rental.withdrawn_amount + amount
-        {
-            return Err(ContractError::UnavailableAmount {});
-        }
-
-        // if !token.shortterm_rental.ejari_flag.is_some() {
-        //     return Err(ContractError::EjariNotConfirmed {});
-        // }
-
-        token.shortterm_rental.withdrawn_amount += amount;
-        self.tokens.save(deps.storage, &token_id, &token)?;
-        Ok(Response::new()
-            .add_attribute("action", "withdrawtohost")
-            .add_message(BankMsg::Send {
-                to_address: token.owner.into_string(),
-                amount: vec![Coin { denom, amount }],
-            }))
-    }
-
     pub fn finalizelongtermrental(
         &self,
         deps: DepsMut,
@@ -1279,61 +1074,6 @@ where
             .add_attribute("sender", info.sender)
             .add_attribute("token_id", token_id))
     }
-
-    // pub fn bid(
-    //     &self,
-    //     deps: DepsMut,
-    //     info: MessageInfo,
-    //     token_id: String,
-    //     offer:u64,
-    // ) -> Result<Response<C>, ContractError>{
-    //     self._update_bids(deps,&info, &token_id, offer)?;
-
-    //     Ok(Response::new()
-    //         .add_attribute("action", "bid")
-    //         .add_attribute("sender", info.sender)
-    //         .add_attribute("token_id", token_id))
-
-    // }
-
-    // pub fn auction(
-    //     &self,
-    //     deps: DepsMut,
-    //     env: Env,
-    //     info: MessageInfo,
-    //     token_id: String,
-    //     new_owner:String,
-    // ) -> Result<Response<C>, ContractError>{
-    //     // let token = self.tokens.load(deps.storage, &token_id)?;
-    //     // let matching_bid = token.bids.iter().find(|bid| bid.buyer == new_owner);
-    //     // let offer = matching_bid.map(|bid| bid.offer).unwrap_or(0);
-    //     // let _ = self.send_nusd(&new_owner, token.owner.to_string(), offer);
-    //     self._transfer_nft(deps, &env, &info, &new_owner, &token_id)?;
-    //     Ok(Response::new()
-    //     .add_attribute("action", "auction")
-    //     .add_attribute("new_owner", new_owner)
-    //     .add_attribute("token_id", token_id))
-    // }
-
-    // pub fn send_nusd(
-    //     &self,
-    //     _sender: &str,
-    //     recipient: String,
-    //     amount: u64,
-    // ) -> StdResult<Response> {
-    //     let transfer_msg = BankMsg::Send {
-    //         // from_address: sender.clone(),
-    //         to_address: recipient.clone(),
-    //         amount: vec![Coin {
-    //             denom: "NUSD".to_string(), // Example token denomination
-    //             amount:amount.into(),
-    //         }],
-    //     };
-
-    //     let cosmo_msg = CosmosMsg::Bank(transfer_msg.into());
-
-    //     Ok(Response::new().add_message(cosmo_msg))
-    // }
 
     #[allow(clippy::too_many_arguments)]
     pub fn _update_approvals(
@@ -1373,29 +1113,6 @@ where
 
         Ok(token)
     }
-
-    // pub fn _update_bids(
-    //     &self,
-    //     deps: DepsMut,
-    //     // env: &Env,
-    //     info: &MessageInfo,
-    //     token_id: &str,
-    //     offer:u64,
-    // ) -> Result<TokenInfo<T>, ContractError> {
-    //     let mut token = self.tokens.load(deps.storage, token_id)?;
-
-    //     // update the approval list (remove any for the same spender before adding)
-    //     let buyer = info.sender.to_string();
-    //     token.bids.retain(|apr| apr.buyer != buyer);
-
-    //     let bid = Bid {
-    //         buyer: buyer,
-    //         offer: offer,
-    //     };
-    //     token.bids.push(bid);
-    //     self.tokens.save(deps.storage, token_id, &token)?;
-    //     Ok(token)
-    // }
 
     /// returns true iff the sender can execute approve or reject on the contract
     pub fn check_can_approve(

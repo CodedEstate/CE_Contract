@@ -118,9 +118,6 @@ pub enum ExecuteMsg<T, E> {
         token_id: String,
     },
 
-    // ProceedShorttermRental{
-    //     token_id:String,
-    // },
     SetReservationForLongTerm {
         token_id: String,
         isreserved: bool,
@@ -144,10 +141,6 @@ pub enum ExecuteMsg<T, E> {
         ejari: bool,
     },
 
-    // SetEjariForShortTermRental {
-    //     token_id:String,
-    //     ejari:bool,
-    // },
     SetMetadata {
         token_id: String,
         token_uri: String,
@@ -157,19 +150,12 @@ pub enum ExecuteMsg<T, E> {
         token_id: String,
     },
 
-    // DepositForShortTermRental{
-    //     token_id: String
-    // },
     WithdrawToLandlord {
         token_id: String,
         amount: Uint128,
         denom: String,
     },
-    // WithdrawToHost{
-    //     token_id:String,
-    //     amount: Uint128,
-    //     denom: String,
-    // },
+
     FinalizeLongTermRental {
         token_id: String,
     },
@@ -179,21 +165,6 @@ pub enum ExecuteMsg<T, E> {
         renting_period: Vec<String>,
     },
 
-    // SetListing {
-    //     token_id:String,
-    //     islisted:bool,
-    //     price:u64,
-    // },
-
-    // Bid {
-    //     token_id:String,
-    //     offer:u64,
-    // },
-
-    // Auction {
-    //     token_id:String,
-    //     new_owner:String,
-    // },
     /// Burn an NFT the sender has access to
     Burn {
         token_id: String,
