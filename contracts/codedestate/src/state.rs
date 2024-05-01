@@ -5,7 +5,7 @@ use std::marker::PhantomData;
 
 use cosmwasm_std::{Addr, BlockInfo, CustomMsg, StdResult, Storage};
 
-use cw721::{ContractInfoResponse, Cw721, Expiration,LongTermRental};
+use cw721::{ContractInfoResponse, Cw721, Expiration,LongTermRental, ShortTermRental};
 use cw_storage_plus::{Index, IndexList, IndexedMap, Item, Map, MultiIndex};
 
 pub struct Cw721Contract<'a, T, C, E, Q>
@@ -110,6 +110,8 @@ pub struct TokenInfo<T> {
 
     pub longterm_rental:LongTermRental,
     
+    pub shortterm_rental:ShortTermRental,
+
     /// This represents if this token is listed for auction or not
     // pub islisted:bool,
     /// Token price for auction

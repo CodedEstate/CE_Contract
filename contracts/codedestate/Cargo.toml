@@ -19,6 +19,7 @@ backtraces = ["cosmwasm-std/backtraces"]
 library = []
 
 [dependencies]
+chrono = "0.4.38"
 cosmwasm-schema = { workspace = true }
 cosmwasm-std    = { workspace = true }
 cw-ownable      = { workspace = true }

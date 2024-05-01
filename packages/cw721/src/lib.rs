@@ -9,7 +9,7 @@ pub use crate::msg::Cw721ExecuteMsg;
 pub use crate::query::{
     AllNftInfoResponse, Approval, ApprovalResponse, ApprovalsResponse, ContractInfoResponse,
     Cw721QueryMsg, NftInfoResponse, NumTokensResponse, OperatorResponse, OperatorsResponse,
-    OwnerOfResponse, TokensResponse,AuctionInfoResponse,Bid, LongTermRental,  Landlord, Tenant,
+    OwnerOfResponse, TokensResponse,AuctionInfoResponse,Bid, LongTermRental, ShortTermRental,Host,Traveler,  Landlord, Tenant,
 };
 pub use crate::receiver::Cw721ReceiveMsg;
 pub use crate::traits::{Cw721, Cw721Execute, Cw721Query};

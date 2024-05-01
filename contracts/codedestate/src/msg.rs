@@ -24,7 +24,10 @@ pub struct InstantiateMsg {
 #[cw_serde]
 pub enum ExecuteMsg<T, E> {
     /// Transfer is a base message to move a token to another account without triggering actions
-    TransferNft { recipient: String, token_id: String },
+    TransferNft {
+        recipient: String,
+        token_id: String,
+    },
     /// Send is a base message to transfer a token to a contract and trigger an action
     /// on the receiving contract.
     SendNft {
@@ -40,7 +43,10 @@ pub enum ExecuteMsg<T, E> {
         expires: Option<Expiration>,
     },
     /// Remove previously granted Approval
-    Revoke { spender: String, token_id: String },
+    Revoke {
+        spender: String,
+        token_id: String,
+    },
     /// Allows operator to transfer / send any token from the owner's account.
     /// If expiration is set, then this allowance has a time/height limit
     ApproveAll {
@@ -48,7 +54,9 @@ pub enum ExecuteMsg<T, E> {
         expires: Option<Expiration>,
     },
     /// Remove previously granted ApproveAll permission
-    RevokeAll { operator: String },
+    RevokeAll {
+        operator: String,
+    },
 
     /// Mint a new NFT, can only be called by the contract minter
     Mint {
@@ -65,59 +73,112 @@ pub enum ExecuteMsg<T, E> {
     },
 
     SetListForLongTermRental {
-        token_id:String,
-        islisted:bool,
-        denom:String,
+        token_id: String,
+        islisted: bool,
+        denom: String,
         price_per_month: u64,
         refundable_deposit: u64,
-        available_period:Vec<String>,
+        available_period: Vec<String>,
+    },
+
+    SetListForShortTermRental {
+        token_id: String,
+        denom: String,
+        price_per_day: u64,
+        auto_approve: bool,
+        available_period: Vec<String>,
     },
 
     SetUnlistForLongtermRental {
-        token_id:String,
+        token_id: String,
+    },
+
+    SetUnlistForShorttermRental {
+        token_id: String,
     },
 
     RejectReservationForLongterm {
-        token_id:String,
+        token_id: String,
     },
 
+    RejectReservationForShortterm {
+        token_id: String,
+        traveler: String,
+        renting_period: Vec<String>,
+    },
     CancelReservationForLongterm {
-        token_id:String,
+        token_id: String,
     },
 
-    ProceedLongtermRental{
-        token_id:String,
+    CancelReservationForShortterm {
+        token_id: String,
+        renting_period: Vec<String>,
+    },
+    ProceedLongtermRental {
+        token_id: String,
     },
 
+    // ProceedShorttermRental{
+    //     token_id:String,
+    // },
     SetReservationForLongTerm {
-        token_id:String,
-        isreserved:bool,
-        deposit_amount:u64,
-        deposit_denom:String,
-        renting_period:Vec<String>,
+        token_id: String,
+        isreserved: bool,
+        deposit_amount: u64,
+        deposit_denom: String,
+        renting_period: Vec<String>,
     },
 
+    SetReservationForShortTerm {
+        token_id: String,
+        renting_period: Vec<String>,
+    },
+
+    SetApproveForShortTerm {
+        token_id: String,
+        traveler: String,
+        renting_period: Vec<String>,
+    },
     SetEjariForLongTermRental {
-        token_id:String,
-        ejari:bool,
+        token_id: String,
+        ejari: bool,
     },
 
+    // SetEjariForShortTermRental {
+    //     token_id:String,
+    //     ejari:bool,
+    // },
     SetMetadata {
-        token_id:String,
-        token_uri:String,
+        token_id: String,
+        token_uri: String,
     },
 
-    DepositForLongTermRental{
-        token_id: String
+    DepositForLongTermRental {
+        token_id: String,
     },
-    FinalizeLongTermRental{
-        token_id: String
-    },
-    WithdrawToLandlord{
-        token_id:String,
+
+    // DepositForShortTermRental{
+    //     token_id: String
+    // },
+    WithdrawToLandlord {
+        token_id: String,
         amount: Uint128,
         denom: String,
     },
+    // WithdrawToHost{
+    //     token_id:String,
+    //     amount: Uint128,
+    //     denom: String,
+    // },
+    FinalizeLongTermRental {
+        token_id: String,
+    },
+    FinalizeShortTermRental {
+        token_id: String,
+        traveler: String,
+        renting_period: Vec<String>,
+    },
+
     // SetListing {
     //     token_id:String,
     //     islisted:bool,
@@ -133,12 +194,15 @@ pub enum ExecuteMsg<T, E> {
     //     token_id:String,
     //     new_owner:String,
     // },
-
     /// Burn an NFT the sender has access to
-    Burn { token_id: String },
+    Burn {
+        token_id: String,
+    },
 
     /// Extension msg
-    Extension { msg: E },
+    Extension {
+        msg: E,
+    },
 }
 
 #[cw_ownable_query]
@@ -198,6 +262,9 @@ pub enum QueryMsg<Q: JsonSchema> {
     #[returns(cw721::LongTermRental)]
     NftInfoLongTermRental { token_id: String },
 
+    #[returns(cw721::ShortTermRental)]
+    NftInfoShortTermRental { token_id: String },
+
     /// With MetaData Extension.
     /// Returns the result of both `NftInfo` and `OwnerOf` as one query as an optimization
     /// for clients
@@ -220,7 +287,7 @@ pub enum QueryMsg<Q: JsonSchema> {
     /// Requires pagination. Lists all token_ids controlled by the contract.
     #[returns(cw721::TokensResponse)]
     AllTokens {
-        owner:String,
+        owner: String,
         start_after: Option<String>,
         limit: Option<u32>,
     },

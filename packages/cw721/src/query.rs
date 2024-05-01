@@ -1,6 +1,6 @@
 use cosmwasm_schema::cw_serde;
-use cw_utils::Expiration;
 use cosmwasm_std::{Addr, Uint128};
+use cw_utils::Expiration;
 #[cw_serde]
 pub enum Cw721QueryMsg {
     /// Return the owner of the given token, error if token does not exist
@@ -73,7 +73,6 @@ pub enum Cw721QueryMsg {
         start_after: Option<String>,
         limit: Option<u32>,
     },
-
 }
 
 #[cw_serde]
@@ -97,37 +96,63 @@ pub struct Bid {
     /// Account that can transfer/send the token
     pub buyer: String,
     /// price offer
-    pub offer:u64,
+    pub offer: u64,
 }
 
-#[cw_serde] 
+#[cw_serde]
 pub struct Landlord {
-    pub denom:String,
+    pub denom: String,
     pub price_per_month: u64,
     pub refundable_deposit: u64,
-    pub available_period:Vec<String>,    
+    pub available_period: Vec<String>,
+}
+
+#[cw_serde]
+pub struct Host {
+    pub price_per_day: u64,
+    // pub refundable_deposit: u64,
+    pub available_period: Vec<String>,
 }
 
 #[cw_serde]
 pub struct Tenant {
-    pub deposit_amount:u64,
-    pub deposit_denom:String,
-    pub renting_period:Vec<String>,
+    pub deposit_amount: u64,
+    pub deposit_denom: String,
+    pub renting_period: Vec<String>,
+}
+
+#[cw_serde]
+pub struct Traveler {
+    pub deposit_amount: Uint128,
+    pub approved: bool,
+    pub renting_period: Vec<String>,
+    pub address: Option<Addr>,
 }
 
 #[cw_serde]
 pub struct LongTermRental {
-    pub islisted:Option<bool>,
-    pub isreserved:Option<bool>,
-    pub landlord:Option<Landlord>,
-    pub tenant:Option<Tenant>,
-    pub tenant_address:Option<Addr>,
-    pub deposit_amount:Uint128,
-    pub withdrawn_amount:Uint128,
-    pub renting_flag:Option<bool>,
-    pub ejari_flag:Option<bool>,
+    pub islisted: Option<bool>,
+    pub isreserved: Option<bool>,
+    pub landlord: Option<Landlord>,
+    pub tenant: Option<Tenant>,
+    pub tenant_address: Option<Addr>,
+    pub deposit_amount: Uint128,
+    pub withdrawn_amount: Uint128,
+    pub renting_flag: Option<bool>,
+    pub ejari_flag: Option<bool>,
 }
 
+#[cw_serde]
+pub struct ShortTermRental {
+    pub islisted: Option<bool>,
+    pub auto_approve: bool,
+    pub price_per_day: u64,
+    pub available_period: Vec<String>,
+    pub travelers: Vec<Traveler>,
+    pub denom: String,
+    pub deposit_amount: Uint128,
+    pub withdrawn_amount: Uint128,
+}
 
 #[cw_serde]
 pub struct ApprovalResponse {
@@ -162,23 +187,22 @@ pub struct ContractInfoResponse {
 
 #[cw_serde]
 pub struct NftInfoResponse<T> {
+    /// Universal resource identifier for this NFT
+    /// Should point to a JSON file that conforms to the ERC721
+    /// Metadata JSON Schema
+    pub token_uri: Option<String>,
 
-        /// Universal resource identifier for this NFT
-        /// Should point to a JSON file that conforms to the ERC721
-        /// Metadata JSON Schema
-        pub token_uri: Option<String>,
-    
-        /// You can add any custom metadata here when you extend codedestate
-        pub extension: T,
+    /// You can add any custom metadata here when you extend codedestate
+    pub extension: T,
 }
 
 #[cw_serde]
 pub struct AuctionInfoResponse {
-    pub islisted:bool,
+    pub islisted: bool,
     /// Token price for auction
-    pub price:u64,
+    pub price: u64,
     /// bids of buyers for this token
-    pub bids:Vec<Bid>,
+    pub bids: Vec<Bid>,
 }
 
 #[cw_serde]

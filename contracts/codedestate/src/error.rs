@@ -19,15 +19,29 @@ pub enum ContractError {
     #[error("cannot withdraw such amount")]
     UnavailableAmount {},
 
+    #[error("Insufficient deposit amount")]
+    InsufficientDeposit {},
+
     #[error("ejari not verified")]
     EjariNotConfirmed {},
 
     #[error("not reservated")]
     NotReserved {},
 
+    #[error("Approved already")]
+    ApprovedAlready {},
+
+    #[error("Invalid deposit denom")]
+    InvalidDeposit {},
+
+    #[error("Someone is renting this property already")]
+    AlreadyReserved {},
+
     #[error("Rental is not activated yet")]
     RentalNotActivated {},
 
+    #[error("Someone reserved this period already")]
+    UnavailablePeriod {},
 
     #[error("Cannot set approval that is already expired")]
     Expired {},
