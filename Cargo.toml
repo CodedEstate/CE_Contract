@@ -24,7 +24,6 @@ cw-utils        = "1.0.1"
 schemars        = "0.8.11"
 serde           = { version = "1.0.152", default-features = false, features = ["derive"] }
 thiserror       = "1.0.38"
-
 [profile.release.package.codedestate]
 codegen-units = 1
 incremental   = false

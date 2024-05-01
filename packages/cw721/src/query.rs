@@ -125,7 +125,7 @@ pub struct Tenant {
 pub struct Traveler {
     pub deposit_amount: Uint128,
     pub approved: bool,
-    pub renting_period: Vec<String>,
+    pub renting_period: Vec<u64>,
     pub address: Option<Addr>,
 }
 

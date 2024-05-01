@@ -72,6 +72,42 @@ pub enum ExecuteMsg<T, E> {
         extension: T,
     },
 
+    // Short term rental
+    SetListForShortTermRental {
+        token_id: String,
+        denom: String,
+        price_per_day: u64,
+        auto_approve: bool,
+        available_period: Vec<String>,
+    },
+    SetUnlistForShorttermRental {
+        token_id: String,
+    },
+    SetReservationForShortTerm {
+        token_id: String,
+        renting_period: Vec<String>,
+    },
+    CancelReservationForShortterm {
+        token_id: String,
+        renting_period: Vec<String>,
+    },
+    RejectReservationForShortterm {
+        token_id: String,
+        traveler: String,
+        renting_period: Vec<String>,
+    },
+    SetApproveForShortTerm {
+        token_id: String,
+        traveler: String,
+        renting_period: Vec<String>,
+    },
+    FinalizeShortTermRental {
+        token_id: String,
+        traveler: String,
+        renting_period: Vec<String>,
+    },
+
+    //Long term rental
     SetListForLongTermRental {
         token_id: String,
         islisted: bool,
@@ -81,19 +117,7 @@ pub enum ExecuteMsg<T, E> {
         available_period: Vec<String>,
     },
 
-    SetListForShortTermRental {
-        token_id: String,
-        denom: String,
-        price_per_day: u64,
-        auto_approve: bool,
-        available_period: Vec<String>,
-    },
-
     SetUnlistForLongtermRental {
-        token_id: String,
-    },
-
-    SetUnlistForShorttermRental {
         token_id: String,
     },
 
@@ -101,19 +125,10 @@ pub enum ExecuteMsg<T, E> {
         token_id: String,
     },
 
-    RejectReservationForShortterm {
-        token_id: String,
-        traveler: String,
-        renting_period: Vec<String>,
-    },
     CancelReservationForLongterm {
         token_id: String,
     },
 
-    CancelReservationForShortterm {
-        token_id: String,
-        renting_period: Vec<String>,
-    },
     ProceedLongtermRental {
         token_id: String,
     },
@@ -126,16 +141,6 @@ pub enum ExecuteMsg<T, E> {
         renting_period: Vec<String>,
     },
 
-    SetReservationForShortTerm {
-        token_id: String,
-        renting_period: Vec<String>,
-    },
-
-    SetApproveForShortTerm {
-        token_id: String,
-        traveler: String,
-        renting_period: Vec<String>,
-    },
     SetEjariForLongTermRental {
         token_id: String,
         ejari: bool,
@@ -158,11 +163,6 @@ pub enum ExecuteMsg<T, E> {
 
     FinalizeLongTermRental {
         token_id: String,
-    },
-    FinalizeShortTermRental {
-        token_id: String,
-        traveler: String,
-        renting_period: Vec<String>,
     },
 
     /// Burn an NFT the sender has access to

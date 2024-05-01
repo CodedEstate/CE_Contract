@@ -43,6 +43,9 @@ pub enum ContractError {
     #[error("Someone reserved this period already")]
     UnavailablePeriod {},
 
+    #[error("Invalid input")]
+    InvalidInput {},
+
     #[error("Cannot set approval that is already expired")]
     Expired {},
 
