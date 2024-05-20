@@ -717,6 +717,7 @@ where
             return Err(ContractError::ApprovedAlready {});
         }
         let mut position: i32 = -1;
+        let mut deposit_amount:Uint128 = Uint128::from(0u64);
         for (i, item) in token.shortterm_rental.travelers.iter().enumerate() {
             if item.address == Some(Addr::unchecked(traveler.clone()))
                 // && item.renting_period == renting_period
@@ -726,6 +727,7 @@ where
                 if item.approved {
                     return Err(ContractError::ApprovedAlready {});
                 } else {
+                    deposit_amount = item.deposit_amount;
                     position = i as i32;
                 }
             }
@@ -740,7 +742,14 @@ where
         Ok(Response::new()
             .add_attribute("action", "rejectreservationforshortterm")
             .add_attribute("sender", info.sender)
-            .add_attribute("token_id", token_id))
+            .add_attribute("token_id", token_id)
+            .add_message(BankMsg::Send {
+                to_address: traveler,
+                amount: vec![Coin {
+                    denom: token.shortterm_rental.denom,
+                    amount: deposit_amount,
+                }],
+            }))
     }
 
     pub fn cancelreservationforshortterm(
