@@ -37,6 +37,12 @@ pub enum ContractError {
     #[error("Someone is renting this property already")]
     AlreadyReserved {},
 
+    #[error("This rental is Not approved")]
+    NotApproved {},
+
+    #[error("This rental is started already")]
+    RentalAlreadyStarted {},
+
     #[error("Rental is not activated yet")]
     RentalNotActivated {},
 
@@ -45,6 +51,9 @@ pub enum ContractError {
 
     #[error("Invalid input")]
     InvalidInput {},
+
+    #[error("Rental period is too short")]
+    LessThanMinimum {},
 
     #[error("Cannot set approval that is already expired")]
     Expired {},

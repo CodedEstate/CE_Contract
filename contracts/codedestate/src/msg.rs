@@ -1,5 +1,6 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::{Binary, Uint128};
+use cosmwasm_std::Binary;
+use cw721::CancellationItem;
 use cw721::Expiration;
 use cw_ownable::{cw_ownable_execute, cw_ownable_query};
 use schemars::JsonSchema;
@@ -72,6 +73,11 @@ pub enum ExecuteMsg<T, E> {
         extension: T,
     },
 
+    SetMetadata {
+        token_id: String,
+        token_uri: String,
+    },
+
     // Short term rental
     SetListForShortTermRental {
         token_id: String,
@@ -79,6 +85,8 @@ pub enum ExecuteMsg<T, E> {
         price_per_day: u64,
         auto_approve: bool,
         available_period: Vec<String>,
+        minimum_stay: u64,
+        cancellation: Vec<CancellationItem>,
     },
     SetUnlistForShorttermRental {
         token_id: String,
@@ -91,6 +99,18 @@ pub enum ExecuteMsg<T, E> {
         token_id: String,
         renting_period: Vec<String>,
     },
+
+    CancelRentalForShortterm {
+        token_id: String,
+        renting_period: Vec<String>,
+    },
+
+    CancelApproveForShortterm {
+        token_id: String,
+        traveler: String,
+        renting_period: Vec<String>,
+    },
+
     RejectReservationForShortterm {
         token_id: String,
         traveler: String,
@@ -108,63 +128,57 @@ pub enum ExecuteMsg<T, E> {
     },
 
     //Long term rental
-    SetListForLongTermRental {
-        token_id: String,
-        islisted: bool,
-        denom: String,
-        price_per_month: u64,
-        refundable_deposit: u64,
-        available_period: Vec<String>,
-    },
+    // SetListForLongTermRental {
+    //     token_id: String,
+    //     islisted: bool,
+    //     denom: String,
+    //     price_per_month: u64,
+    //     refundable_deposit: u64,
+    //     available_period: Vec<String>,
+    // },
 
-    SetUnlistForLongtermRental {
-        token_id: String,
-    },
+    // SetUnlistForLongtermRental {
+    //     token_id: String,
+    // },
 
-    RejectReservationForLongterm {
-        token_id: String,
-    },
+    // RejectReservationForLongterm {
+    //     token_id: String,
+    // },
 
-    CancelReservationForLongterm {
-        token_id: String,
-    },
+    // CancelReservationForLongterm {
+    //     token_id: String,
+    // },
 
-    ProceedLongtermRental {
-        token_id: String,
-    },
+    // ProceedLongtermRental {
+    //     token_id: String,
+    // },
 
-    SetReservationForLongTerm {
-        token_id: String,
-        isreserved: bool,
-        deposit_amount: u64,
-        deposit_denom: String,
-        renting_period: Vec<String>,
-    },
+    // SetReservationForLongTerm {
+    //     token_id: String,
+    //     isreserved: bool,
+    //     deposit_amount: u64,
+    //     deposit_denom: String,
+    //     renting_period: Vec<String>,
+    // },
 
-    SetEjariForLongTermRental {
-        token_id: String,
-        ejari: bool,
-    },
+    // SetEjariForLongTermRental {
+    //     token_id: String,
+    //     ejari: bool,
+    // },
 
-    SetMetadata {
-        token_id: String,
-        token_uri: String,
-    },
+    // DepositForLongTermRental {
+    //     token_id: String,
+    // },
 
-    DepositForLongTermRental {
-        token_id: String,
-    },
+    // WithdrawToLandlord {
+    //     token_id: String,
+    //     amount: Uint128,
+    //     denom: String,
+    // },
 
-    WithdrawToLandlord {
-        token_id: String,
-        amount: Uint128,
-        denom: String,
-    },
-
-    FinalizeLongTermRental {
-        token_id: String,
-    },
-
+    // FinalizeLongTermRental {
+    //     token_id: String,
+    // },
     /// Burn an NFT the sender has access to
     Burn {
         token_id: String,

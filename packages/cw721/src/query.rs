@@ -143,6 +143,12 @@ pub struct LongTermRental {
 }
 
 #[cw_serde]
+pub struct CancellationItem {
+    pub deadline: u64,
+    pub percentage: u64,
+}
+
+#[cw_serde]
 pub struct ShortTermRental {
     pub islisted: Option<bool>,
     pub auto_approve: bool,
@@ -152,6 +158,8 @@ pub struct ShortTermRental {
     pub denom: String,
     pub deposit_amount: Uint128,
     pub withdrawn_amount: Uint128,
+    pub cancellation: Vec<CancellationItem>,
+    pub minimum_stay: u64,
 }
 
 #[cw_serde]
