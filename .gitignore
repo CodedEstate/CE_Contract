@@ -15,7 +15,7 @@ target/
 .\#*
 
 # Auto-gen
-# .cargo-ok
+.cargo-ok
 
 # Build artifacts
 *.wasm
