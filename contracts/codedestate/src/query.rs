@@ -2,13 +2,13 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use cosmwasm_std::{
-    to_binary, Addr, Binary, BlockInfo, CustomMsg, Deps, Env, Order, StdError, StdResult
+    to_binary, Addr, Binary, BlockInfo, CustomMsg, Deps, Env, Order, StdError, StdResult,
 };
 
 use cw721::{
     AllNftInfoResponse, ApprovalResponse, ApprovalsResponse, ContractInfoResponse, Cw721Query,
-    Expiration, NftInfoResponse, NumTokensResponse, OperatorResponse, OperatorsResponse,
-    OwnerOfResponse, TokensResponse,LongTermRental,ShortTermRental
+    Expiration, LongTermRental, NftInfoResponse, NumTokensResponse, OperatorResponse,
+    OperatorsResponse, OwnerOfResponse, ShortTermRental, TokensResponse,
 };
 use cw_storage_plus::Bound;
 use cw_utils::maybe_addr;
@@ -16,14 +16,8 @@ use cw_utils::maybe_addr;
 use crate::msg::{MinterResponse, QueryMsg};
 use crate::state::{Approval, Cw721Contract, TokenInfo};
 
-
-
 const DEFAULT_LIMIT: u32 = 4294967295;
 const MAX_LIMIT: u32 = 4294967295;
-
-
-
-
 
 impl<'a, T, C, E, Q> Cw721Query<T> for Cw721Contract<'a, T, C, E, Q>
 where
@@ -41,13 +35,17 @@ where
         Ok(NumTokensResponse { count })
     }
 
+    // fn get_fee_value(&self, deps: Deps) -> StdResult<FeeValueResponse> {
+    //     let fee = self.get_fee(deps.storage)?;
+    //     Ok(FeeValueResponse { fee })
+    // }
+
     fn nft_info(&self, deps: Deps, token_id: String) -> StdResult<NftInfoResponse<T>> {
         let info = self.tokens.load(deps.storage, &token_id)?;
         Ok(NftInfoResponse {
             token_uri: info.token_uri,
             extension: info.extension,
         })
-
     }
 
     fn nft_longtermrental_info(&self, deps: Deps, token_id: String) -> StdResult<LongTermRental> {
@@ -238,11 +236,13 @@ where
             .tokens
             .range(deps.storage, start, None, Order::Ascending)
             .take(limit)
-            .map(|item| item.map(|(k, v)| Token {
-                id: k,
-                owner: v.owner.clone(),
-                renting: v.longterm_rental.renting_flag.clone(), // should check renting_flag more correctly
-            }))
+            .map(|item| {
+                item.map(|(k, v)| Token {
+                    id: k,
+                    owner: v.owner.clone(),
+                    renting: v.longterm_rental.renting_flag.clone(), // should check renting_flag more correctly
+                })
+            })
             .collect();
 
         match tokens {
@@ -261,18 +261,17 @@ where
                     std::cmp::Ordering::Equal
                 });
             }
-            Err(ref _error) => {
-            }
+            Err(ref _error) => {}
         }
 
         let tokenidxs: Vec<String> = match tokens {
             Ok(tokens) => tokens.iter().map(|token| token.id.clone()).collect(),
             Err(_err) => {
-                vec![] 
+                vec![]
             }
         };
         Ok(TokensResponse { tokens: tokenidxs })
-    }    
+    }
 
     fn all_nft_info(
         &self,
@@ -313,8 +312,12 @@ where
             QueryMsg::Minter {} => to_binary(&self.minter(deps)?),
             QueryMsg::ContractInfo {} => to_binary(&self.contract_info(deps)?),
             QueryMsg::NftInfo { token_id } => to_binary(&self.nft_info(deps, token_id)?),
-            QueryMsg::NftInfoLongTermRental { token_id } => to_binary(&self.nft_longtermrental_info(deps, token_id)?),
-            QueryMsg::NftInfoShortTermRental { token_id } => to_binary(&self.nft_shorttermrental_info(deps, token_id)?),
+            QueryMsg::NftInfoLongTermRental { token_id } => {
+                to_binary(&self.nft_longtermrental_info(deps, token_id)?)
+            }
+            QueryMsg::NftInfoShortTermRental { token_id } => {
+                to_binary(&self.nft_shorttermrental_info(deps, token_id)?)
+            }
             QueryMsg::OwnerOf {
                 token_id,
                 include_expired,
@@ -355,14 +358,18 @@ where
                 limit,
             )?),
             QueryMsg::NumTokens {} => to_binary(&self.num_tokens(deps)?),
+            QueryMsg::GetFee {} => to_binary(&self.get_fee(deps.storage)?),
+            QueryMsg::GetBalance { denom } => to_binary(&self.get_balance(deps.storage, denom)?),
             QueryMsg::Tokens {
                 owner,
                 start_after,
                 limit,
             } => to_binary(&self.tokens(deps, owner, start_after, limit)?),
-            QueryMsg::AllTokens {owner,  start_after, limit } => {
-                to_binary(&self.all_tokens(deps,owner, start_after, limit)?)
-            }
+            QueryMsg::AllTokens {
+                owner,
+                start_after,
+                limit,
+            } => to_binary(&self.all_tokens(deps, owner, start_after, limit)?),
             QueryMsg::Approval {
                 token_id,
                 spender,

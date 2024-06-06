@@ -37,7 +37,6 @@ where
         self.contract_info.save(deps.storage, &info)?;
 
         cw_ownable::initialize_owner(deps.storage, deps.api, Some(&msg.minter))?;
-
         Ok(Response::default())
     }
 
@@ -100,25 +99,26 @@ where
                 traveler,
                 renting_period,
             ),
-            ExecuteMsg::CancelApproveForShortterm {
-                token_id,
-                traveler,
-                renting_period,
-            } => self.rejectreservationforshortterm(
-                deps,
-                env,
-                info,
-                token_id,
-                traveler,
-                renting_period,
-            ),
+            // ExecuteMsg::CancelApproveForShortterm {
+            //     token_id,
+            //     traveler,
+            //     renting_period,
+            // } => self.rejectreservationforshortterm(
+            //     deps,
+            //     env,
+            //     info,
+            //     token_id,
+            //     traveler,
+            //     renting_period,
+            // ),
 
-            ExecuteMsg::CancelRentalForShortterm { token_id, renting_period } => self.cancelrentalforshortterm(deps, info,env, token_id, renting_period),
+            ExecuteMsg::CancelRentalForShortterm { token_id, renting_period }
+            => self.cancelreservationafterapprovalforshortterm(deps, info,env, token_id, renting_period),
 
             ExecuteMsg::CancelReservationForShortterm {
                 token_id,
                 renting_period,
-            } => self.cancelreservationforshortterm(deps, info, token_id, renting_period),
+            } => self.cancelreservationbeforeapprovalforshortterm(deps, info, token_id, renting_period),
 
             ExecuteMsg::SetApproveForShortTerm {
                 token_id,
@@ -193,7 +193,9 @@ where
             //     self.finalizelongtermrental(deps, env, info, token_id)
             // }
             
-            
+            ExecuteMsg::Withdraw { target, amount } => self.withdraw(deps, info, target, amount),
+
+            ExecuteMsg::SetFeeValue { fee } => self.set_fee_value(deps,info, fee),
             
             ExecuteMsg::Approve {
                 spender,
@@ -272,12 +274,8 @@ where
             // owner: deps.api.addr_validate(&owner)?,
             owner: info.sender.clone(),
             approvals: vec![],
-            // mode:None,
             longterm_rental: longterm_rental,
             shortterm_rental: shortterm_rental,
-            // islisted:false,
-            // price:0,
-            // bids:vec![],
             token_uri,
             extension,
         };
@@ -294,6 +292,31 @@ where
             .add_attribute("minter", info.sender)
             .add_attribute("owner", owner)
             .add_attribute("token_id", token_id))
+    }
+
+    pub fn set_fee_value(&self,deps:DepsMut,info: MessageInfo, fee:u64) -> Result<Response<C>, ContractError> {
+        cw_ownable::assert_owner(deps.storage, &info.sender)?;
+        self.set_fee(deps.storage, fee)?;
+        Ok(Response::new()
+            .add_attribute("action", "setfee"))
+    }
+
+    pub fn withdraw(&self, deps: DepsMut, info: MessageInfo, target:String, amount:Coin) -> Result<Response<C>, ContractError> {
+        
+        cw_ownable::assert_owner(deps.storage, &info.sender)?;
+
+
+        if amount.amount.clone() > self.get_balance(deps.storage, amount.denom.clone())? {
+            return Err(ContractError::UnavailableAmount {});
+        }
+        
+        Ok(Response::new()
+            .add_attribute("action", "withdraw")
+            .add_message(BankMsg::Send {
+                    to_address: target,
+                    amount: vec![amount],
+                })
+        )
     }
 
     pub fn update_ownership(
@@ -495,7 +518,7 @@ where
         let mut token = self.tokens.load(deps.storage, &token_id)?;
         // ensure we have permissions
         self.check_can_approve(deps.as_ref(), &env, &info, &token)?;
-
+        self.check_can_edit(&env, &token)?;
         token.token_uri = Some(token_uri);
         self.tokens.save(deps.storage, &token_id, &token)?;
 
@@ -521,6 +544,7 @@ where
         let mut token = self.tokens.load(deps.storage, &token_id)?;
         // ensure we have permissions
         self.check_can_approve(deps.as_ref(), &env, &info, &token)?;
+        self.check_can_edit(&env, &token)?;
 
         token.shortterm_rental.islisted = Some(true);
         token.shortterm_rental.price_per_day = price_per_day;
@@ -547,6 +571,7 @@ where
         let mut token = self.tokens.load(deps.storage, &token_id)?;
         // ensure we have permissions
         self.check_can_approve(deps.as_ref(), &env, &info, &token)?;
+        self.check_can_edit(&env, &token)?;
 
         token.shortterm_rental.islisted = None;
         token.shortterm_rental.price_per_day = 0u64;
@@ -573,6 +598,8 @@ where
     ) -> Result<Response<C>, ContractError> {
         let mut token = self.tokens.load(deps.storage, &token_id)?;
         // let new_checkin = NaiveDate::parse_from_str(&renting_period[0], "%Y/%m/%d").unwrap();
+
+
         let new_checkin = renting_period[0].parse::<u64>();
         let new_checkin_timestamp;
 
@@ -638,24 +665,26 @@ where
             return Err(ContractError::InvalidDeposit {});
         }
         let sent_amount = info.funds[0].amount;
-
+        let fee_percentage = self.get_fee(deps.storage)?;
+        let rent_amount = token.shortterm_rental.price_per_day
+        * (new_checkout_timestamp - new_checkin_timestamp)/(86400);
         if sent_amount
-            < Uint128::from(
-                token.shortterm_rental.price_per_day
-                    * (new_checkout_timestamp - new_checkin_timestamp)/(86400),
-            )
+            < Uint128::from(rent_amount) + Uint128::new((u128::from(rent_amount) * u128::from(fee_percentage)) / 10000)
         {
             return Err(ContractError::InsufficientDeposit {});
         }
 
+        self.increase_balance(deps.storage, info.funds[0].denom.clone(), sent_amount - Uint128::from(rent_amount))?;
+
         let traveler = Traveler {
-            deposit_amount: sent_amount,
+            deposit_amount: Uint128::from(rent_amount),
             renting_period: vec![new_checkin_timestamp, new_checkout_timestamp],
             address: Some(info.sender.clone()),
             approved: token.shortterm_rental.auto_approve,
+            cancelled:false
         };
 
-        token.shortterm_rental.deposit_amount += sent_amount;
+        // token.shortterm_rental.deposit_amount += sent_amount;
         token
             .shortterm_rental
             .travelers
@@ -695,11 +724,31 @@ where
         let mut token = self.tokens.load(deps.storage, &token_id)?;
         self.check_can_approve(deps.as_ref(), &env, &info, &token)?;
 
-        let is_approved = token.shortterm_rental.auto_approve;
+        // let is_approved = token.shortterm_rental.auto_approve;
 
-        if is_approved {
-            return Err(ContractError::ApprovedAlready {});
+        // if is_approved {
+        //     return Err(ContractError::ApprovedAlready {});
+        // }
+
+        let current_time = env.block.time.seconds();
+
+        let check_in_time = renting_period[0].parse::<u64>();
+        let check_in_time_timestamp;
+
+        match check_in_time {
+            Ok(timestamp) => {
+                check_in_time_timestamp = timestamp;
+            }
+            Err(_e) => {
+                return Err(ContractError::NotReserved {});
+            }
         }
+
+
+        if check_in_time_timestamp <= current_time {
+            return Err(ContractError::RentalAlreadyStarted {});
+        }
+
         let mut position: i32 = -1;
         // let mut amount = Uint128::from(0u64);
         for (i, item) in token.shortterm_rental.travelers.iter().enumerate() {
@@ -750,11 +799,10 @@ where
         // if token.shortterm_rental.auto_approve {
         //     return Err(ContractError::ApprovedAlready {});
         // }
-
-        let auto_approved = token.shortterm_rental.auto_approve;
+        // let auto_approved = token.shortterm_rental.auto_approve;
 
         let mut position: i32 = -1;
-        let mut refundable_amount:Uint128 = Uint128::from(0u64);
+        let mut refundable_amount:Uint128 = Uint128::new(0);
         for (i, item) in token.shortterm_rental.travelers.iter().enumerate() {
             if item.address == Some(Addr::unchecked(traveler.clone()))
                 // && item.renting_period == renting_period
@@ -762,7 +810,7 @@ where
                 && item.renting_period[1].to_string() == renting_period[1]
             {
                 position = i as i32;
-                if item.approved || auto_approved {
+                if item.approved {
                     // return Err(ContractError::ApprovedAlready {});
                     refundable_amount = item.deposit_amount; 
                 } else {
@@ -793,7 +841,7 @@ where
 
 
 
-    pub fn cancelrentalforshortterm(
+    pub fn cancelreservationafterapprovalforshortterm(
         &self,
         deps: DepsMut,
         info: MessageInfo,
@@ -802,10 +850,10 @@ where
         renting_period: Vec<String>,
     ) -> Result<Response<C>, ContractError> {
         let mut token = self.tokens.load(deps.storage, &token_id)?;
-        let is_approved = token.shortterm_rental.auto_approve;
+        // let is_approved = token.shortterm_rental.auto_approve;
 
         let mut position: i32 = -1;
-        let mut amount = Uint128::from(0u64);
+        let mut amount = Uint128::new(0);
         let traveler_address = info.sender.to_string();
         for (i, item) in token.shortterm_rental.travelers.iter().enumerate() {
             if item.address == Some(info.sender.clone()) 
@@ -813,7 +861,7 @@ where
             && item.renting_period[0].to_string() == renting_period[0]
                 && item.renting_period[1].to_string() == renting_period[1]
              {
-                if item.approved || is_approved {
+                if item.approved && !item.cancelled {
                     position = i as i32;
                     amount = item.deposit_amount;
                 } else {
@@ -821,7 +869,7 @@ where
                 }
             }
         }
-        let mut refundable_amount = Uint128::from(0u64);
+        let mut refundable_amount = Uint128::new(0);
         let mut cancellation = token.shortterm_rental.cancellation.clone();
         cancellation.sort_by(|a,b| b.percentage.cmp(&a.percentage));
         let current_time = env.block.time.seconds();
@@ -846,7 +894,6 @@ where
         let diff_days = (check_in_time_timestamp - current_time)/86400;
         for (_i, item) in cancellation.iter().enumerate() {
             if item.deadline < diff_days {
-                // refundable_amount = amount * Uint128::from(item.percentage) / Uint128::from(100u64);
                 refundable_amount =  Uint128::new((amount.u128() * u128::from(item.percentage)) / 100);
                 break;
             }
@@ -858,10 +905,16 @@ where
 
 
         if position != -1 {
-            token.shortterm_rental.travelers.remove(position as usize);
+            // token.shortterm_rental.travelers.remove(position as usize);
+
+            token.shortterm_rental.travelers[position as usize].cancelled = true;
+            token.shortterm_rental.travelers[position as usize].deposit_amount = amount - refundable_amount;
+
+
             self.tokens.save(deps.storage, &token_id, &token)?;
-            Ok(Response::new()
-                .add_attribute("action", "cancelrentalforshortterm")
+            if refundable_amount > Uint128::new(0) {
+                Ok(Response::new()
+                .add_attribute("action", "cancelreservationafterapprovalforshortterm")
                 .add_attribute("sender", info.sender)
                 .add_attribute("token_id", token_id)
                 .add_message(BankMsg::Send {
@@ -871,6 +924,15 @@ where
                         amount: refundable_amount,
                     }],
                 }))
+            }
+            else {
+            Ok(Response::new()
+                .add_attribute("action", "cancelreservationafterapprovalforshortterm")
+                .add_attribute("sender", info.sender)
+                .add_attribute("token_id", token_id)
+                )
+            }
+
         } else {
             return Err(ContractError::NotReserved {});
         }
@@ -878,7 +940,7 @@ where
 
 
 
-    pub fn cancelreservationforshortterm(
+    pub fn cancelreservationbeforeapprovalforshortterm(
         &self,
         deps: DepsMut,
         info: MessageInfo,
@@ -886,11 +948,11 @@ where
         renting_period: Vec<String>,
     ) -> Result<Response<C>, ContractError> {
         let mut token = self.tokens.load(deps.storage, &token_id)?;
-        let is_withdrawn = token.shortterm_rental.auto_approve;
+        // let is_approved = token.shortterm_rental.auto_approve;
 
-        if is_withdrawn {
-            return Err(ContractError::ApprovedAlready {});
-        }
+        // if is_approved {
+        //     return Err(ContractError::ApprovedAlready {});
+        // }
         let mut position: i32 = -1;
         let mut amount = Uint128::from(0u64);
         let traveler_address = info.sender.to_string();
@@ -913,7 +975,7 @@ where
             token.shortterm_rental.travelers.remove(position as usize);
             self.tokens.save(deps.storage, &token_id, &token)?;
             Ok(Response::new()
-                .add_attribute("action", "cancelreservationforshortterm")
+                .add_attribute("action", "cancelreservationbeforeapprovalforshortterm")
                 .add_attribute("sender", info.sender)
                 .add_attribute("token_id", token_id)
                 .add_message(BankMsg::Send {
@@ -938,9 +1000,33 @@ where
         renting_period: Vec<String>,
     ) -> Result<Response<C>, ContractError> {
         let mut token = self.tokens.load(deps.storage, &token_id)?;
+
         self.check_can_send(deps.as_ref(), &env, &info, &token)?;
 
         let mut position: i32 = -1;
+        let mut amount = Uint128::from(0u64);
+
+        let current_time = env.block.time.seconds();
+
+        let check_out_time = renting_period[1].parse::<u64>();
+        let check_out_time_timestamp;
+
+        match check_out_time {
+            Ok(timestamp) => {
+                check_out_time_timestamp = timestamp;
+            }
+            Err(_e) => {
+                return Err(ContractError::NotReserved {});
+            }
+        }
+
+
+        if check_out_time_timestamp > current_time {
+            return Err(ContractError::RentalActive {});
+        }
+
+        let mut target = "".to_string();
+
         for (i, item) in token.shortterm_rental.travelers.iter().enumerate() {
             if item.address == Some(Addr::unchecked(traveler.clone()))
                 // && item.renting_period == renting_period
@@ -948,19 +1034,55 @@ where
                 && item.renting_period[1].to_string() == renting_period[1]
             {
                 position = i as i32;
+                if item.cancelled {
+                    amount = item.deposit_amount;
+                    target = token.owner.to_string();
+                }
+                if !item.cancelled {
+                    if !item.approved {
+                        amount = item.deposit_amount;
+                        target = traveler.clone();
+                        // return  Err(ContractError::NotApproved {});
+                    }
+                    if item.approved {
+                        target = token.owner.to_string();
+                        let fee_percentage = self.get_fee(deps.storage)?;
+                        self.increase_balance(deps.storage, token.shortterm_rental.denom.clone(), Uint128::new((u128::from(amount) * u128::from(fee_percentage)) / 10000))?;
+                        amount -= Uint128::new((u128::from(amount) * u128::from(fee_percentage)) / 10000);
+                    }
+                }
+
             }
         }
         if position == -1 {
             return Err(ContractError::NotReserved {});
         } else {
+
             token.shortterm_rental.travelers.remove(position as usize);
             self.tokens.save(deps.storage, &token_id, &token)?;
         }
 
+        if amount > Uint128::new(0) {
         Ok(Response::new()
             .add_attribute("action", "finalizeshorttermrental")
             .add_attribute("sender", info.sender)
-            .add_attribute("token_id", token_id))
+            .add_attribute("token_id", token_id)
+            .add_message(BankMsg::Send {
+                to_address: target.clone(),
+                amount: vec![Coin {
+                    denom: token.shortterm_rental.denom,
+                    amount: amount,
+                }],
+            }))            
+        } 
+        else {
+            Ok(Response::new()
+            .add_attribute("action", "finalizeshorttermrental")
+            .add_attribute("sender", info.sender)
+            .add_attribute("token_id", token_id)
+            )
+        }
+
     }
 
     pub fn setlistforlongtermrental(
@@ -1297,6 +1419,30 @@ where
             None => Err(ContractError::Ownership(OwnershipError::NotOwner)),
         }
     }
+
+    pub fn check_can_edit(
+        &self,
+        // _deps:Deps,
+        env:&Env,
+        // _info:&MessageInfo,
+        token:&TokenInfo<T>,
+    ) -> Result<(), ContractError> {
+        if token.shortterm_rental.travelers.len() == 0 {
+            return Ok(());
+        }
+        else {
+            // token.shortterm_rental.travelers[token.shortterm_rental.travelers.len()-1].renting_period[1]
+            let current_time = env.block.time.seconds();
+            let last_check_out_time = token.shortterm_rental.travelers[token.shortterm_rental.travelers.len()-1].renting_period[1];
+            if last_check_out_time < current_time {
+                return Ok(());
+            }
+            else {
+                return Err(ContractError::RentalActive {});
+            }
+        }
+    }
+
 
     /// returns true iff the sender can transfer ownership of the token
     pub fn check_can_send(

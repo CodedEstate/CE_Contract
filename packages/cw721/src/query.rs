@@ -125,6 +125,7 @@ pub struct Tenant {
 pub struct Traveler {
     pub deposit_amount: Uint128,
     pub approved: bool,
+    pub cancelled: bool,
     pub renting_period: Vec<u64>,
     pub address: Option<Addr>,
 }
@@ -185,6 +186,11 @@ pub struct OperatorsResponse {
 #[cw_serde]
 pub struct NumTokensResponse {
     pub count: u64,
+}
+
+#[cw_serde]
+pub struct FeeValueResponse {
+    pub fee: u64,
 }
 
 #[cw_serde]

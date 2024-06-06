@@ -2,8 +2,9 @@ use serde::de::DeserializeOwned;
 use serde::Serialize;
 
 use crate::{
-    AllNftInfoResponse, ApprovalResponse, ApprovalsResponse, ContractInfoResponse, NftInfoResponse,
-    NumTokensResponse, OperatorResponse, OperatorsResponse, OwnerOfResponse, TokensResponse,LongTermRental,ShortTermRental
+    AllNftInfoResponse, ApprovalResponse, ApprovalsResponse, ContractInfoResponse, LongTermRental,
+    NftInfoResponse, NumTokensResponse, OperatorResponse, OperatorsResponse, OwnerOfResponse,
+    ShortTermRental, TokensResponse,
 };
 use cosmwasm_std::{Binary, CustomMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw_utils::Expiration;
@@ -96,6 +97,7 @@ where
     fn contract_info(&self, deps: Deps) -> StdResult<ContractInfoResponse>;
 
     fn num_tokens(&self, deps: Deps) -> StdResult<NumTokensResponse>;
+    // fn get_fee_value(&self, deps: Deps) -> StdResult<FeeValueResponse>;
 
     fn nft_info(&self, deps: Deps, token_id: String) -> StdResult<NftInfoResponse<T>>;
 
@@ -157,7 +159,7 @@ where
     fn all_tokens(
         &self,
         deps: Deps,
-        owner:String,
+        owner: String,
         start_after: Option<String>,
         limit: Option<u32>,
     ) -> StdResult<TokensResponse>;

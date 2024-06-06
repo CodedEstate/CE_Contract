@@ -1,5 +1,6 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 use cosmwasm_std::Binary;
+use cosmwasm_std::Coin;
 use cw721::CancellationItem;
 use cw721::Expiration;
 use cw_ownable::{cw_ownable_execute, cw_ownable_query};
@@ -59,6 +60,10 @@ pub enum ExecuteMsg<T, E> {
         operator: String,
     },
 
+    Withdraw {
+        target: String,
+        amount: Coin,
+    },
     /// Mint a new NFT, can only be called by the contract minter
     Mint {
         /// Unique ID of the NFT
@@ -71,6 +76,10 @@ pub enum ExecuteMsg<T, E> {
         token_uri: Option<String>,
         /// Any custom extension used by this contract
         extension: T,
+    },
+
+    SetFeeValue {
+        fee: u64,
     },
 
     SetMetadata {
@@ -105,12 +114,11 @@ pub enum ExecuteMsg<T, E> {
         renting_period: Vec<String>,
     },
 
-    CancelApproveForShortterm {
-        token_id: String,
-        traveler: String,
-        renting_period: Vec<String>,
-    },
-
+    // CancelApproveForShortterm {
+    //     token_id: String,
+    //     traveler: String,
+    //     renting_period: Vec<String>,
+    // },
     RejectReservationForShortterm {
         token_id: String,
         traveler: String,
@@ -234,6 +242,11 @@ pub enum QueryMsg<Q: JsonSchema> {
     #[returns(cw721::NumTokensResponse)]
     NumTokens {},
 
+    #[returns(cw721::FeeValueResponse)]
+    GetFee {},
+
+    #[returns(u64)]
+    GetBalance { denom: String },
     /// With MetaData Extension.
     /// Returns top-level metadata about the contract
     #[returns(cw721::ContractInfoResponse)]

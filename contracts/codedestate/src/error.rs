@@ -13,20 +13,26 @@ pub enum ContractError {
     #[error(transparent)]
     Version(#[from] cw2::VersionError),
 
-    #[error("token_id already claimed")]
+    #[error("Token_id already claimed")]
     Claimed {},
 
-    #[error("cannot withdraw such amount")]
+    #[error("Cannot withdraw such amount")]
     UnavailableAmount {},
+
+    #[error("This property is not listed yet")]
+    NotListed {},
 
     #[error("Insufficient deposit amount")]
     InsufficientDeposit {},
 
-    #[error("ejari not verified")]
+    #[error("Ejari not verified")]
     EjariNotConfirmed {},
 
-    #[error("not reservated")]
+    #[error("Not reservated")]
     NotReserved {},
+
+    #[error("Rental is still active")]
+    RentalActive {},
 
     #[error("Approved already")]
     ApprovedAlready {},
@@ -57,6 +63,9 @@ pub enum ContractError {
 
     #[error("Cannot set approval that is already expired")]
     Expired {},
+
+    #[error("Refundable amount:{amount}")]
+    RefundableAmount { amount: String },
 
     #[error("Approval not found for: {spender}")]
     ApprovalNotFound { spender: String },
