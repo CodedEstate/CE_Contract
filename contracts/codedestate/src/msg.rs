@@ -78,6 +78,11 @@ pub enum ExecuteMsg<T, E> {
         extension: T,
     },
 
+    SetExtension {
+        token_id: String,
+        extension: T,
+    },
+
     SetFeeValue {
         fee: u64,
     },

@@ -60,6 +60,11 @@ where
                 token_uri,
             } => self.setmetadata(deps, env, info, token_id, token_uri),
 
+            ExecuteMsg::SetExtension {
+                token_id,
+                extension,
+            } => self.setextension(deps, env, info, token_id, extension),
+
             ExecuteMsg::SetListForShortTermRental {
                 token_id,
                 denom,
@@ -309,6 +314,8 @@ where
         if amount.amount.clone() > self.get_balance(deps.storage, amount.denom.clone())? {
             return Err(ContractError::UnavailableAmount {});
         }
+
+        self.decrease_balance(deps.storage, amount.denom.clone(), amount.amount.clone())?;
         
         Ok(Response::new()
             .add_attribute("action", "withdraw")
@@ -527,6 +534,30 @@ where
             .add_attribute("sender", info.sender)
             .add_attribute("token_id", token_id))
     }
+
+
+    pub fn setextension(
+        &self,
+        deps: DepsMut,
+        env: Env,
+        info: MessageInfo,
+        token_id: String,
+        extension: T,
+        // expires: Option<Expiration>,
+    ) -> Result<Response<C>, ContractError> {
+        let mut token = self.tokens.load(deps.storage, &token_id)?;
+        // ensure we have permissions
+        self.check_can_approve(deps.as_ref(), &env, &info, &token)?;
+        self.check_can_edit(&env, &token)?;
+        token.extension = extension;
+        self.tokens.save(deps.storage, &token_id, &token)?;
+
+        Ok(Response::new()
+            .add_attribute("action", "setextension")
+            .add_attribute("sender", info.sender)
+            .add_attribute("token_id", token_id))
+    }
+
 
     pub fn setlistforshorttermrental(
         &self,
@@ -1021,9 +1052,6 @@ where
         }
 
 
-        if check_out_time_timestamp > current_time {
-            return Err(ContractError::RentalActive {});
-        }
 
         let mut target = "".to_string();
 
@@ -1034,13 +1062,13 @@ where
                 && item.renting_period[1].to_string() == renting_period[1]
             {
                 position = i as i32;
+                amount = item.deposit_amount;
+
                 if item.cancelled {
-                    amount = item.deposit_amount;
                     target = token.owner.to_string();
                 }
                 if !item.cancelled {
                     if !item.approved {
-                        amount = item.deposit_amount;
                         target = traveler.clone();
                         // return  Err(ContractError::NotApproved {});
                     }
@@ -1058,9 +1086,18 @@ where
             return Err(ContractError::NotReserved {});
         } else {
 
+            if check_out_time_timestamp > current_time 
+            && !token.shortterm_rental.travelers[position as usize].cancelled
+             {
+                    return Err(ContractError::RentalActive {});              
+            }
+
+            
             token.shortterm_rental.travelers.remove(position as usize);
             self.tokens.save(deps.storage, &token_id, &token)?;
         }
+
+
 
         if amount > Uint128::new(0) {
         Ok(Response::new()
