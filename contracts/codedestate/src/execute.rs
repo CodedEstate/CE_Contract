@@ -91,7 +91,8 @@ where
             ExecuteMsg::SetReservationForShortTerm {
                 token_id,
                 renting_period,
-            } => self.setreservationforshortterm(deps, info, token_id, renting_period),
+                guests,
+            } => self.setreservationforshortterm(deps, info, token_id, renting_period, guests),
             ExecuteMsg::RejectReservationForShortterm {
                 token_id,
                 traveler,
@@ -626,6 +627,7 @@ where
         info: MessageInfo,
         token_id: String,
         renting_period: Vec<String>,
+        guests:usize,
     ) -> Result<Response<C>, ContractError> {
         let mut token = self.tokens.load(deps.storage, &token_id)?;
         // let new_checkin = NaiveDate::parse_from_str(&renting_period[0], "%Y/%m/%d").unwrap();
@@ -712,7 +714,8 @@ where
             renting_period: vec![new_checkin_timestamp, new_checkout_timestamp],
             address: Some(info.sender.clone()),
             approved: token.shortterm_rental.auto_approve,
-            cancelled:false
+            cancelled:false,
+            guests:guests,
         };
 
         // token.shortterm_rental.deposit_amount += sent_amount;

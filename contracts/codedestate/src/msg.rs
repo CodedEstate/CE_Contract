@@ -108,6 +108,7 @@ pub enum ExecuteMsg<T, E> {
     SetReservationForShortTerm {
         token_id: String,
         renting_period: Vec<String>,
+        guests: usize,
     },
     CancelReservationForShortterm {
         token_id: String,

@@ -128,6 +128,7 @@ pub struct Traveler {
     pub cancelled: bool,
     pub renting_period: Vec<u64>,
     pub address: Option<Addr>,
+    pub guests: usize,
 }
 
 #[cw_serde]
