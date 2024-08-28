@@ -269,7 +269,7 @@ where
             available_period: vec![],
             deposit_amount: Uint128::from(0u64),
             withdrawn_amount: Uint128::from(0u64),
-            denom: "unibi".to_string(),
+            denom: "ibc/F082B65C88E4B6D5EF1DB243CDA1D331D002759E938A0F5CD3FFDC5D53B3E349".to_string(),
             auto_approve: false,
             cancellation:vec![],
             minimum_stay:0u64,
