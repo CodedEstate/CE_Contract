@@ -94,9 +94,9 @@ pub struct Approval {
 #[cw_serde]
 pub struct Bid {
     /// Account that can transfer/send the token
-    pub buyer: String,
+    pub address: String,
     /// price offer
-    pub offer: u64,
+    pub offer: Uint128,
 }
 
 #[cw_serde]
@@ -114,34 +114,50 @@ pub struct Host {
     pub available_period: Vec<String>,
 }
 
-#[cw_serde]
-pub struct Tenant {
-    pub deposit_amount: u64,
-    pub deposit_denom: String,
-    pub renting_period: Vec<String>,
-}
+// #[cw_serde]
+// pub struct Tenant {
+//     pub deposit_amount: Uint128,
+//     pub approved_date: Option<String>,
+//     pub cancelled: bool,
+//     pub renting_period: Vec<u64>,
+//     pub address: Option<Addr>,
+//     pub guests: usize,
+// }
+
+// #[cw_serde]
+// pub struct Traveler {
+//     pub deposit_amount: Uint128,
+//     pub approved: bool,
+//     pub cancelled: bool,
+//     pub renting_period: Vec<u64>,
+//     pub address: Option<Addr>,
+//     pub guests: usize,
+// }
 
 #[cw_serde]
-pub struct Traveler {
+pub struct Rental {
+    pub denom: String,
     pub deposit_amount: Uint128,
-    pub approved: bool,
+    pub rental_type: bool,
     pub cancelled: bool,
     pub renting_period: Vec<u64>,
     pub address: Option<Addr>,
+    pub approved: bool,
+    pub approved_date: Option<String>,
     pub guests: usize,
 }
 
 #[cw_serde]
 pub struct LongTermRental {
     pub islisted: Option<bool>,
-    pub isreserved: Option<bool>,
-    pub landlord: Option<Landlord>,
-    pub tenant: Option<Tenant>,
-    pub tenant_address: Option<Addr>,
+    pub auto_approve: bool,
+    pub price_per_month: u64,
+    pub available_period: Vec<String>,
+    pub denom: String,
     pub deposit_amount: Uint128,
     pub withdrawn_amount: Uint128,
-    pub renting_flag: Option<bool>,
-    pub ejari_flag: Option<bool>,
+    pub cancellation: Vec<CancellationItem>,
+    pub minimum_stay: u64,
 }
 
 #[cw_serde]
@@ -156,12 +172,19 @@ pub struct ShortTermRental {
     pub auto_approve: bool,
     pub price_per_day: u64,
     pub available_period: Vec<String>,
-    pub travelers: Vec<Traveler>,
     pub denom: String,
     pub deposit_amount: Uint128,
     pub withdrawn_amount: Uint128,
     pub cancellation: Vec<CancellationItem>,
     pub minimum_stay: u64,
+}
+
+#[cw_serde]
+pub struct Sell {
+    pub islisted: Option<bool>,
+    pub auto_approve: bool,
+    pub price: u64,
+    pub denom: String,
 }
 
 #[cw_serde]
@@ -172,6 +195,16 @@ pub struct ApprovalResponse {
 #[cw_serde]
 pub struct ApprovalsResponse {
     pub approvals: Vec<Approval>,
+}
+
+#[cw_serde]
+pub struct RentalsResponse {
+    pub rentals: Vec<Rental>,
+}
+
+#[cw_serde]
+pub struct BidsResponse {
+    pub bids: Vec<Bid>,
 }
 
 #[cw_serde]

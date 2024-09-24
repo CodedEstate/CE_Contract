@@ -6,9 +6,9 @@ use cosmwasm_std::{
 };
 
 use cw721::{
-    AllNftInfoResponse, ApprovalResponse, ApprovalsResponse, ContractInfoResponse, Cw721Query,
-    Expiration, LongTermRental, NftInfoResponse, NumTokensResponse, OperatorResponse,
-    OperatorsResponse, OwnerOfResponse, ShortTermRental, TokensResponse,
+    AllNftInfoResponse, ApprovalResponse, ApprovalsResponse, BidsResponse, ContractInfoResponse,
+    Cw721Query, Expiration, LongTermRental, NftInfoResponse, NumTokensResponse, OperatorResponse,
+    OperatorsResponse, OwnerOfResponse, RentalsResponse, Sell, ShortTermRental, TokensResponse,
 };
 use cw_storage_plus::Bound;
 use cw_utils::maybe_addr;
@@ -56,6 +56,23 @@ where
     fn nft_shorttermrental_info(&self, deps: Deps, token_id: String) -> StdResult<ShortTermRental> {
         let info = self.tokens.load(deps.storage, &token_id)?;
         Ok(info.shortterm_rental)
+    }
+
+    fn nft_sell_info(&self, deps: Deps, token_id: String) -> StdResult<Sell> {
+        let info = self.tokens.load(deps.storage, &token_id)?;
+        Ok(info.sell)
+    }
+
+    fn nft_rentals_info(&self, deps: Deps, token_id: String) -> StdResult<RentalsResponse> {
+        let info = self.tokens.load(deps.storage, &token_id)?;
+        Ok(cw721::RentalsResponse {
+            rentals: info.rentals,
+        })
+    }
+
+    fn nft_bids_info(&self, deps: Deps, token_id: String) -> StdResult<BidsResponse> {
+        let info = self.tokens.load(deps.storage, &token_id)?;
+        Ok(cw721::BidsResponse { bids: info.bids })
     }
 
     fn owner_of(
@@ -219,7 +236,7 @@ where
     fn all_tokens(
         &self,
         deps: Deps,
-        owner: String,
+        _owner: String,
         start_after: Option<String>,
         limit: Option<u32>,
     ) -> StdResult<TokensResponse> {
@@ -228,41 +245,41 @@ where
 
         struct Token {
             id: String,
-            owner: Addr,
-            renting: Option<bool>,
+            // owner: Addr,
+            // renting: Option<bool>,
         }
 
-        let mut tokens: StdResult<Vec<Token>> = self
+        let tokens: StdResult<Vec<Token>> = self
             .tokens
             .range(deps.storage, start, None, Order::Ascending)
             .take(limit)
             .map(|item| {
-                item.map(|(k, v)| Token {
+                item.map(|(k, _v)| Token {
                     id: k,
-                    owner: v.owner.clone(),
-                    renting: v.longterm_rental.renting_flag.clone(), // should check renting_flag more correctly
+                    // owner: v.owner.clone(),
+                    // renting: v.longterm_rental.renting_flag.clone(), // should check renting_flag more correctly
                 })
             })
             .collect();
 
-        match tokens {
-            Ok(ref mut tokens) => {
-                tokens.sort_by(|a, b| {
-                    if a.renting.is_some() && b.renting.is_none() {
-                        return std::cmp::Ordering::Greater;
-                    } else if a.renting.is_none() && b.renting.is_some() {
-                        return std::cmp::Ordering::Less;
-                    }
-                    if a.owner == owner && b.owner != owner {
-                        return std::cmp::Ordering::Greater;
-                    } else if a.owner != owner && b.owner == owner {
-                        return std::cmp::Ordering::Less;
-                    }
-                    std::cmp::Ordering::Equal
-                });
-            }
-            Err(ref _error) => {}
-        }
+        // match tokens {
+        //     Ok(ref mut tokens) => {
+        //         tokens.sort_by(|a, b| {
+        //             if a.renting.is_some() && b.renting.is_none() {
+        //                 return std::cmp::Ordering::Greater;
+        //             } else if a.renting.is_none() && b.renting.is_some() {
+        //                 return std::cmp::Ordering::Less;
+        //             }
+        //             if a.owner == owner && b.owner != owner {
+        //                 return std::cmp::Ordering::Greater;
+        //             } else if a.owner != owner && b.owner == owner {
+        //                 return std::cmp::Ordering::Less;
+        //             }
+        //             std::cmp::Ordering::Equal
+        //         });
+        //     }
+        //     Err(ref _error) => {}
+        // }
 
         let tokenidxs: Vec<String> = match tokens {
             Ok(tokens) => tokens.iter().map(|token| token.id.clone()).collect(),
@@ -318,6 +335,12 @@ where
             QueryMsg::NftInfoShortTermRental { token_id } => {
                 to_binary(&self.nft_shorttermrental_info(deps, token_id)?)
             }
+
+            QueryMsg::NftInfoSell { token_id } => to_binary(&self.nft_sell_info(deps, token_id)?),
+
+            QueryMsg::NftRentals { token_id } => to_binary(&self.nft_rentals_info(deps, token_id)?),
+            QueryMsg::NftBids { token_id } => to_binary(&self.nft_bids_info(deps, token_id)?),
+
             QueryMsg::OwnerOf {
                 token_id,
                 include_expired,

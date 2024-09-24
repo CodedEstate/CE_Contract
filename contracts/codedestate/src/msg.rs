@@ -92,6 +92,18 @@ pub enum ExecuteMsg<T, E> {
         token_uri: String,
     },
 
+    SetListForSell {
+        islisted: bool,
+        token_id: String,
+        denom: String,
+        price: u64,
+        auto_approve: bool,
+    },
+
+    SetBidToBuy {
+        token_id: String,
+    },
+
     // Short term rental
     SetListForShortTermRental {
         token_id: String,
@@ -141,58 +153,65 @@ pub enum ExecuteMsg<T, E> {
         renting_period: Vec<String>,
     },
 
-    //Long term rental
-    // SetListForLongTermRental {
-    //     token_id: String,
-    //     islisted: bool,
-    //     denom: String,
-    //     price_per_month: u64,
-    //     refundable_deposit: u64,
-    //     available_period: Vec<String>,
-    // },
+    WithdrawToLandlord {
+        token_id: String,
+        tenant: String,
+        renting_period: Vec<String>,
+        amount: u64,
+        address: String,
+    },
 
-    // SetUnlistForLongtermRental {
-    //     token_id: String,
-    // },
+    // Long term rental
+    SetListForLongTermRental {
+        token_id: String,
+        denom: String,
+        price_per_month: u64,
+        auto_approve: bool,
+        available_period: Vec<String>,
+        minimum_stay: u64,
+        cancellation: Vec<CancellationItem>,
+    },
 
-    // RejectReservationForLongterm {
-    //     token_id: String,
-    // },
+    SetUnlistForLongtermRental {
+        token_id: String,
+    },
 
-    // CancelReservationForLongterm {
-    //     token_id: String,
-    // },
+    SetReservationForLongTerm {
+        token_id: String,
+        renting_period: Vec<String>,
+        guests: usize,
+    },
+    RejectReservationForLongterm {
+        token_id: String,
+        tenant: String,
+        renting_period: Vec<String>,
+    },
+    CancelReservationForLongterm {
+        token_id: String,
+        renting_period: Vec<String>,
+    },
+    CancelRentalForLongterm {
+        token_id: String,
+        renting_period: Vec<String>,
+    },
+    DepositForLongTermRental {
+        token_id: String,
+        renting_period: Vec<String>,
+    },
 
-    // ProceedLongtermRental {
-    //     token_id: String,
-    // },
+    SetApproveForLongTerm {
+        token_id: String,
+        tenant: String,
+        renting_period: Vec<String>,
+        approved_date: String,
+    },
 
-    // SetReservationForLongTerm {
-    //     token_id: String,
-    //     isreserved: bool,
-    //     deposit_amount: u64,
-    //     deposit_denom: String,
-    //     renting_period: Vec<String>,
-    // },
+    FinalizeLongTermRental {
+        token_id: String,
+        tenant: String,
+        renting_period: Vec<String>,
+    },
 
-    // SetEjariForLongTermRental {
-    //     token_id: String,
-    //     ejari: bool,
-    // },
-
-    // DepositForLongTermRental {
-    //     token_id: String,
-    // },
-
-    // WithdrawToLandlord {
-    //     token_id: String,
-    //     amount: Uint128,
-    //     denom: String,
-    // },
-
-    // FinalizeLongTermRental {
-    //     token_id: String,
-    // },
     /// Burn an NFT the sender has access to
     Burn {
         token_id: String,
@@ -268,6 +287,15 @@ pub enum QueryMsg<Q: JsonSchema> {
 
     #[returns(cw721::ShortTermRental)]
     NftInfoShortTermRental { token_id: String },
+
+    #[returns(cw721::Sell)]
+    NftInfoSell { token_id: String },
+
+    #[returns(cw721::RentalsResponse)]
+    NftRentals { token_id: String },
+
+    #[returns(cw721::BidsResponse)]
+    NftBids { token_id: String },
 
     /// With MetaData Extension.
     /// Returns the result of both `NftInfo` and `OwnerOf` as one query as an optimization

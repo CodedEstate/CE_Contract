@@ -2,10 +2,13 @@ use schemars::JsonSchema;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::marker::PhantomData;
+use std::vec;
 
 use cosmwasm_std::{Addr, BlockInfo, CustomMsg, StdResult, Storage, Uint128};
 
-use cw721::{ContractInfoResponse, Cw721, Expiration, LongTermRental, ShortTermRental};
+use cw721::{
+    Bid, ContractInfoResponse, Cw721, Expiration, LongTermRental, Rental, Sell, ShortTermRental,
+};
 use cw_storage_plus::{Index, IndexList, IndexedMap, Item, Map, MultiIndex};
 
 pub struct Cw721Contract<'a, T, C, E, Q>
@@ -148,27 +151,15 @@ pub struct TokenInfo<T> {
     /// Approvals are stored here, as we clear them all upon transfer and cannot accumulate much
     pub approvals: Vec<Approval>,
 
-    /// determines the action
-    // pub mode:Option<String>,
-
-    /// long term rental
     pub longterm_rental: LongTermRental,
 
     pub shortterm_rental: ShortTermRental,
+    pub rentals: Vec<Rental>,
+    pub bids: Vec<Bid>,
+    pub sell: Sell,
 
-    /// This represents if this token is listed for auction or not
-    // pub islisted:bool,
-    /// Token price for auction
-    // pub price:u64,
-    /// bids of buyers for this token
-    // pub bids:Vec<Bid>,
-
-    /// Universal resource identifier for this NFT
-    /// Should point to a JSON file that conforms to the ERC721
-    /// Metadata JSON Schema
     pub token_uri: Option<String>,
 
-    /// You can add any custom metadata here when you extend codedestate
     pub extension: T,
 }
 
@@ -185,14 +176,6 @@ impl Approval {
         self.expires.is_expired(block)
     }
 }
-
-// #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
-// pub struct Bid {
-//     /// Account that can transfer/send the token
-//     pub buyer: String,
-//     /// price offer
-//     pub offer:u64,
-// }
 
 pub struct TokenIndexes<'a, T>
 where
