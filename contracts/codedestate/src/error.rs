@@ -16,6 +16,9 @@ pub enum ContractError {
     #[error("Token_id already claimed")]
     Claimed {},
 
+    #[error("Not token owner")]
+    NotOwner {},
+
     #[error("Cannot withdraw such amount")]
     UnavailableAmount {},
 
@@ -33,6 +36,9 @@ pub enum ContractError {
 
     #[error("Rental is still active")]
     RentalActive {},
+
+    #[error("Active bids exists")]
+    BidsActive {},
 
     #[error("Approved already")]
     ApprovedAlready {},

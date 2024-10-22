@@ -131,6 +131,19 @@ where
         Ok(balance)
     }
 
+    // pub fn decrease_balance(
+    //     &self,
+    //     storage: &mut dyn Storage,
+    //     denom: String,
+    //     amount: Uint128,
+    // ) -> StdResult<Uint128> {
+    //     let balance = self.balances.may_load(storage, &denom)?.unwrap_or_default();
+    //     let new_balance = balance.checked_sub(amount)
+    //         .map_err(|_| StdError::overflow(OverflowError::new(OverflowOperation::Sub, balance, amount)))?;
+    //     self.balances.save(storage, &denom, &new_balance)?;
+    //     Ok(new_balance)
+    // }
+
     pub fn increment_tokens(&self, storage: &mut dyn Storage) -> StdResult<u64> {
         let val = self.token_count(storage)? + 1;
         self.token_count.save(storage, &val)?;

@@ -1,5 +1,5 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
-use cosmwasm_std::Binary;
+// use cosmwasm_std::Binary;
 use cosmwasm_std::Coin;
 use cw721::CancellationItem;
 use cw721::Expiration;
@@ -32,11 +32,12 @@ pub enum ExecuteMsg<T, E> {
     },
     /// Send is a base message to transfer a token to a contract and trigger an action
     /// on the receiving contract.
-    SendNft {
-        contract: String,
-        token_id: String,
-        msg: Binary,
-    },
+    // SendNft {
+    //     contract: String,
+    //     token_id: String,
+    //     msg: Binary,
+    // },
+
     /// Allows operator to transfer / send the token from the owner's account.
     /// If expiration is set, then this allowance has a time/height limit
     Approve {
@@ -96,7 +97,7 @@ pub enum ExecuteMsg<T, E> {
         islisted: bool,
         token_id: String,
         denom: String,
-        price: u64,
+        price: u128,
         auto_approve: bool,
     },
 
@@ -104,11 +105,16 @@ pub enum ExecuteMsg<T, E> {
         token_id: String,
     },
 
+    RejectBid {
+        token_id: String,
+        bidder: String,
+    },
+
     // Short term rental
     SetListForShortTermRental {
         token_id: String,
         denom: String,
-        price_per_day: u64,
+        price_per_day: u128,
         auto_approve: bool,
         available_period: Vec<String>,
         minimum_stay: u64,
@@ -132,11 +138,6 @@ pub enum ExecuteMsg<T, E> {
         renting_period: Vec<String>,
     },
 
-    // CancelApproveForShortterm {
-    //     token_id: String,
-    //     traveler: String,
-    //     renting_period: Vec<String>,
-    // },
     RejectReservationForShortterm {
         token_id: String,
         traveler: String,
@@ -157,7 +158,7 @@ pub enum ExecuteMsg<T, E> {
         token_id: String,
         tenant: String,
         renting_period: Vec<String>,
-        amount: u64,
+        amount: u128,
         address: String,
     },
 
@@ -165,7 +166,7 @@ pub enum ExecuteMsg<T, E> {
     SetListForLongTermRental {
         token_id: String,
         denom: String,
-        price_per_month: u64,
+        price_per_month: u128,
         auto_approve: bool,
         available_period: Vec<String>,
         minimum_stay: u64,
@@ -270,7 +271,7 @@ pub enum QueryMsg<Q: JsonSchema> {
     #[returns(cw721::FeeValueResponse)]
     GetFee {},
 
-    #[returns(u64)]
+    #[returns(u128)]
     GetBalance { denom: String },
     /// With MetaData Extension.
     /// Returns top-level metadata about the contract

@@ -97,22 +97,23 @@ pub struct Bid {
     pub address: String,
     /// price offer
     pub offer: Uint128,
-}
-
-#[cw_serde]
-pub struct Landlord {
     pub denom: String,
-    pub price_per_month: u64,
-    pub refundable_deposit: u64,
-    pub available_period: Vec<String>,
 }
 
-#[cw_serde]
-pub struct Host {
-    pub price_per_day: u64,
-    // pub refundable_deposit: u64,
-    pub available_period: Vec<String>,
-}
+// #[cw_serde]
+// pub struct Landlord {
+//     pub denom: String,
+//     pub price_per_month: u128,
+//     pub refundable_deposit: u128,
+//     pub available_period: Vec<String>,
+// }
+
+// #[cw_serde]
+// pub struct Host {
+//     pub price_per_day: u64,
+//     // pub refundable_deposit: u64,
+//     pub available_period: Vec<String>,
+// }
 
 // #[cw_serde]
 // pub struct Tenant {
@@ -151,7 +152,7 @@ pub struct Rental {
 pub struct LongTermRental {
     pub islisted: Option<bool>,
     pub auto_approve: bool,
-    pub price_per_month: u64,
+    pub price_per_month: u128,
     pub available_period: Vec<String>,
     pub denom: String,
     pub deposit_amount: Uint128,
@@ -170,7 +171,7 @@ pub struct CancellationItem {
 pub struct ShortTermRental {
     pub islisted: Option<bool>,
     pub auto_approve: bool,
-    pub price_per_day: u64,
+    pub price_per_day: u128,
     pub available_period: Vec<String>,
     pub denom: String,
     pub deposit_amount: Uint128,
@@ -183,7 +184,7 @@ pub struct ShortTermRental {
 pub struct Sell {
     pub islisted: Option<bool>,
     pub auto_approve: bool,
-    pub price: u64,
+    pub price: u128,
     pub denom: String,
 }
 
@@ -244,14 +245,14 @@ pub struct NftInfoResponse<T> {
     pub extension: T,
 }
 
-#[cw_serde]
-pub struct AuctionInfoResponse {
-    pub islisted: bool,
-    /// Token price for auction
-    pub price: u64,
-    /// bids of buyers for this token
-    pub bids: Vec<Bid>,
-}
+// #[cw_serde]
+// pub struct AuctionInfoResponse {
+//     pub islisted: bool,
+//     /// Token price for auction
+//     pub price: u64,
+//     /// bids of buyers for this token
+//     pub bids: Vec<Bid>,
+// }
 
 #[cw_serde]
 pub struct AllNftInfoResponse<T> {

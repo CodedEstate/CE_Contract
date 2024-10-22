@@ -6,7 +6,7 @@ use crate::{
     LongTermRental, NftInfoResponse, NumTokensResponse, OperatorResponse, OperatorsResponse,
     OwnerOfResponse, RentalsResponse, Sell, ShortTermRental, TokensResponse,
 };
-use cosmwasm_std::{Binary, CustomMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{CustomMsg, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use cw_utils::Expiration;
 
 pub trait Cw721<T, C>: Cw721Execute<T, C> + Cw721Query<T>
@@ -32,15 +32,15 @@ where
         token_id: String,
     ) -> Result<Response<C>, Self::Err>;
 
-    fn send_nft(
-        &self,
-        deps: DepsMut,
-        env: Env,
-        info: MessageInfo,
-        contract: String,
-        token_id: String,
-        msg: Binary,
-    ) -> Result<Response<C>, Self::Err>;
+    // fn send_nft(
+    //     &self,
+    //     deps: DepsMut,
+    //     env: Env,
+    //     info: MessageInfo,
+    //     contract: String,
+    //     token_id: String,
+    //     msg: Binary,
+    // ) -> Result<Response<C>, Self::Err>;
 
     fn approve(
         &self,
