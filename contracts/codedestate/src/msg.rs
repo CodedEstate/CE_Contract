@@ -1,5 +1,6 @@
 use cosmwasm_schema::{cw_serde, QueryResponses};
 // use cosmwasm_std::Binary;
+use crate::state::Owner;
 use cosmwasm_std::Coin;
 use cw721::CancellationItem;
 use cw721::Expiration;
@@ -70,7 +71,7 @@ pub enum ExecuteMsg<T, E> {
         /// Unique ID of the NFT
         token_id: String,
         /// The owner of the newly minter NFT
-        owner: String,
+        owner: Owner,
         /// Universal resource identifier for this NFT
         /// Should point to a JSON file that conforms to the ERC721
         /// Metadata JSON Schema

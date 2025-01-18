@@ -1,3 +1,5 @@
+// use std::ptr::null;
+
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -11,7 +13,7 @@ use cw721::{
     OperatorsResponse, OwnerOfResponse, RentalsResponse, Sell, ShortTermRental, TokensResponse,
 };
 use cw_storage_plus::Bound;
-use cw_utils::maybe_addr;
+// use cw_utils::maybe_addr;
 
 use crate::msg::{MinterResponse, QueryMsg};
 use crate::state::{Approval, Cw721Contract, TokenInfo};
@@ -84,7 +86,7 @@ where
     ) -> StdResult<OwnerOfResponse> {
         let info = self.tokens.load(deps.storage, &token_id)?;
         Ok(OwnerOfResponse {
-            owner: info.owner.to_string(),
+            owner: info.owner.address.to_string(),
             approvals: humanize_approvals(&env.block, &info, include_expired),
         })
     }
@@ -101,9 +103,10 @@ where
         let owner_addr = deps.api.addr_validate(&owner)?;
         let operator_addr = deps.api.addr_validate(&operator)?;
 
-        let info = self
-            .operators
-            .may_load(deps.storage, (&owner_addr, &operator_addr))?;
+        let info = self.operators.may_load(
+            deps.storage,
+            (&owner_addr.to_string(), &operator_addr.to_string()),
+        )?;
 
         if let Some(expires) = info {
             if !include_expired && expires.is_expired(&env.block) {
@@ -128,18 +131,17 @@ where
         env: Env,
         owner: String,
         include_expired: bool,
-        start_after: Option<String>,
+        _start_after: Option<String>,
         limit: Option<u32>,
     ) -> StdResult<OperatorsResponse> {
         let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-        let start_addr = maybe_addr(deps.api, start_after)?;
-        let start = start_addr.as_ref().map(Bound::exclusive);
-
+        // let start_addr = maybe_addr(deps.api, start_after)?;
+        // let start = start_addr.as_ref().map(Bound::exclusive);
         let owner_addr = deps.api.addr_validate(&owner)?;
         let res: StdResult<Vec<_>> = self
             .operators
-            .prefix(&owner_addr)
-            .range(deps.storage, start, None, Order::Ascending)
+            .prefix(&owner_addr.to_string())
+            .range(deps.storage, None, None, Order::Ascending)
             .filter(|r| {
                 include_expired || r.is_err() || !r.as_ref().unwrap().1.is_expired(&env.block)
             })
@@ -160,9 +162,9 @@ where
         let token = self.tokens.load(deps.storage, &token_id)?;
 
         // token owner has absolute approval
-        if token.owner == spender {
+        if token.owner.address == spender {
             let approval = cw721::Approval {
-                spender: token.owner.to_string(),
+                spender: token.owner.address.to_string(),
                 expires: Expiration::Never {},
             };
             return Ok(ApprovalResponse { approval });
@@ -225,7 +227,7 @@ where
             .tokens
             .idx
             .owner
-            .prefix(owner_addr)
+            .prefix(owner_addr.to_string())
             .keys(deps.storage, start, None, Order::Ascending)
             .take(limit)
             .collect::<StdResult<Vec<_>>>()?;
@@ -300,7 +302,7 @@ where
         let info = self.tokens.load(deps.storage, &token_id)?;
         Ok(AllNftInfoResponse {
             access: OwnerOfResponse {
-                owner: info.owner.to_string(),
+                owner: info.owner.address.to_string(),
                 approvals: humanize_approvals(&env.block, &info, include_expired),
             },
             info: NftInfoResponse {
@@ -428,7 +430,7 @@ where
     }
 }
 
-fn parse_approval(item: StdResult<(Addr, Expiration)>) -> StdResult<cw721::Approval> {
+fn parse_approval(item: StdResult<(String, Expiration)>) -> StdResult<cw721::Approval> {
     item.map(|(spender, expires)| cw721::Approval {
         spender: spender.to_string(),
         expires,

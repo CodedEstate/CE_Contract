@@ -22,7 +22,7 @@ where
     pub fee: Item<'a, u64>,
     pub balances: Map<'a, &'a str, Uint128>,
     /// Stored as (granter, operator) giving operator full control over granter's account
-    pub operators: Map<'a, (&'a Addr, &'a Addr), Expiration>,
+    pub operators: Map<'a, (&'a String, &'a String), Expiration>,
     pub tokens: IndexedMap<'a, &'a str, TokenInfo<T>, TokenIndexes<'a, T>>,
 
     pub(crate) _custom_response: PhantomData<C>,
@@ -158,9 +158,15 @@ where
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct Owner {
+    pub chain_type: String,
+    pub address: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct TokenInfo<T> {
     /// The owner of the newly minted NFT
-    pub owner: Addr,
+    pub owner: Owner,
     /// Approvals are stored here, as we clear them all upon transfer and cannot accumulate much
     pub approvals: Vec<Approval>,
 
@@ -194,7 +200,7 @@ pub struct TokenIndexes<'a, T>
 where
     T: Serialize + DeserializeOwned + Clone,
 {
-    pub owner: MultiIndex<'a, Addr, TokenInfo<T>, String>,
+    pub owner: MultiIndex<'a, String, TokenInfo<T>, String>,
 }
 
 impl<'a, T> IndexList<TokenInfo<T>> for TokenIndexes<'a, T>
@@ -207,6 +213,6 @@ where
     }
 }
 
-pub fn token_owner_idx<T>(_pk: &[u8], d: &TokenInfo<T>) -> Addr {
-    d.owner.clone()
+pub fn token_owner_idx<T>(_pk: &[u8], d: &TokenInfo<T>) -> String {
+    return d.owner.address.clone();
 }

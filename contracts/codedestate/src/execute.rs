@@ -22,7 +22,7 @@ use cw721::{
 
 use crate::error::ContractError;
 use crate::msg::{ExecuteMsg, InstantiateMsg};
-use crate::state::{Approval, Cw721Contract, TokenInfo};
+use crate::state::{Approval, Cw721Contract, Owner, TokenInfo};
 
 impl<'a, T, C, E, Q> Cw721Contract<'a, T, C, E, Q>
 where
@@ -309,7 +309,7 @@ where
         deps: DepsMut,
         info: MessageInfo,
         token_id: String,
-        _owner: String,
+        owner: Owner,
         token_uri: Option<String>,
         extension: T,
     ) -> Result<Response<C>, ContractError> {
@@ -351,7 +351,7 @@ where
 
         // create the token
         let token = TokenInfo {
-            owner: info.sender.clone(),
+            owner: owner.clone(),
             approvals: vec![],
             rentals: vec![],
             bids: vec![],
@@ -446,8 +446,8 @@ where
 
         self.check_can_approve(deps.as_ref(), &env, &info, &token)?;
 
-        let prev_owner = token.owner;
-        token.owner = deps.api.addr_validate(&recipient)?;
+        let prev_owner = token.owner.clone();
+        token.owner.address = recipient.clone();
         token.approvals = vec![];
         let fee_percentage = self.get_fee(deps.storage)?;
 
@@ -483,7 +483,7 @@ where
                 .add_attribute("sender", info.sender.clone())
                 .add_attribute("token_id", token_id)
                 .add_message(BankMsg::Send {
-                    to_address: prev_owner.to_string(),
+                    to_address: prev_owner.address.to_string(),
                     amount: vec![Coin {
                         denom: denom,
                         amount: amount_after_fee,
@@ -575,8 +575,11 @@ where
 
         // set the operator for us
         let operator_addr = deps.api.addr_validate(&operator)?;
-        self.operators
-            .save(deps.storage, (&info.sender, &operator_addr), &expires)?;
+        self.operators.save(
+            deps.storage,
+            (&info.sender.to_string(), &operator_addr.to_string()),
+            &expires,
+        )?;
 
         Ok(Response::new()
             .add_attribute("action", "approve_all")
@@ -592,8 +595,10 @@ where
         operator: String,
     ) -> Result<Response<C>, ContractError> {
         let operator_addr = deps.api.addr_validate(&operator)?;
-        self.operators
-            .remove(deps.storage, (&info.sender, &operator_addr));
+        self.operators.remove(
+            deps.storage,
+            (&info.sender.to_string(), &operator_addr.to_string()),
+        );
 
         Ok(Response::new()
             .add_attribute("action", "revoke_all")
@@ -1323,7 +1328,7 @@ where
                 amount = item.deposit_amount;
 
                 if item.cancelled {
-                    target = token.owner.to_string();
+                    target = token.owner.address.to_string();
                 }
                 if !item.cancelled {
                     if !item.approved {
@@ -1331,7 +1336,7 @@ where
                         // return  Err(ContractError::NotApproved {});
                     }
                     if item.approved {
-                        target = token.owner.to_string();
+                        target = token.owner.address.to_string();
                         let fee_percentage = self.get_fee(deps.storage)?;
                         self.increase_balance(
                             deps.storage,
@@ -1817,7 +1822,7 @@ where
                 amount = item.deposit_amount;
 
                 if item.cancelled {
-                    target = token.owner.to_string();
+                    target = token.owner.address.to_string();
                     let fee_percentage = self.get_fee(deps.storage)?;
                     self.increase_balance(
                         deps.storage,
@@ -1832,7 +1837,7 @@ where
                         target = tenant.clone();
                         // return  Err(ContractError::NotApproved {});
                     } else {
-                        target = token.owner.to_string();
+                        target = token.owner.address.to_string();
                         let fee_percentage = self.get_fee(deps.storage)?;
                         self.increase_balance(
                             deps.storage,
@@ -2003,13 +2008,14 @@ where
         token: &TokenInfo<T>,
     ) -> Result<(), ContractError> {
         // owner can approve
-        if token.owner == info.sender {
+        if token.owner.address == info.sender.to_string() {
             return Ok(());
         }
         // operator can approve
-        let op = self
-            .operators
-            .may_load(deps.storage, (&token.owner, &info.sender))?;
+        let op = self.operators.may_load(
+            deps.storage,
+            (&token.owner.address, &info.sender.to_string()),
+        )?;
         match op {
             Some(ex) => {
                 if ex.is_expired(&env.block) {
@@ -2107,7 +2113,7 @@ where
         token: &TokenInfo<T>,
     ) -> Result<(), ContractError> {
         // owner can send
-        if token.owner == info.sender {
+        if token.owner.address == info.sender.to_string() {
             return Ok(());
         }
 
@@ -2121,9 +2127,10 @@ where
         }
 
         // operator can send
-        let op = self
-            .operators
-            .may_load(deps.storage, (&token.owner, &info.sender))?;
+        let op = self.operators.may_load(
+            deps.storage,
+            (&token.owner.address, &info.sender.to_string()),
+        )?;
         match op {
             Some(ex) => {
                 if ex.is_expired(&env.block) {

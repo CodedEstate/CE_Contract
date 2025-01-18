@@ -10,10 +10,10 @@ mod contract_tests;
 #[cfg(test)]
 mod multi_tests;
 
-use cosmwasm_schema::cw_serde;
 pub use crate::error::ContractError;
 pub use crate::msg::{ExecuteMsg, InstantiateMsg, MinterResponse, QueryMsg};
 pub use crate::state::Cw721Contract;
+use cosmwasm_schema::cw_serde;
 
 // These types are re-exported so that contracts interacting with this
 // one don't need a direct dependency on cw_ownable to use the API.
@@ -24,7 +24,6 @@ pub use crate::state::Cw721Contract;
 pub use cw_ownable::{Action, Ownership, OwnershipError};
 
 use cosmwasm_std::Empty;
-
 
 #[cw_serde]
 pub struct Trait {
@@ -37,7 +36,7 @@ pub struct Trait {
 pub struct Metadata {
     pub name: Option<String>,
     pub description: Option<String>,
-    pub image: Option<Vec<Trait>>,    
+    pub image: Option<Vec<Trait>>,
     pub attributes: Option<Vec<Trait>>,
     pub external_url: Option<String>,
 }
@@ -94,7 +93,6 @@ pub mod entry {
         let tract = Cw721Contract::<Extension, Empty, Empty, Empty>::default();
         tract.query(deps, env, msg)
     }
-
 }
 
 #[cfg(test)]
